@@ -1,25 +1,25 @@
 {
-  "name": "@ai-web-agency/ai",
+  "name": "@ai-web-agency/orchestration-worker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx watch src/main.ts",
     "lint": "eslint src test",
-    "test": "vitest run",
+    "start": "node dist/main.js",
+    "test": "vitest run test/unit",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@ai-web-agency/database": "workspace:*",
+    "@ai-web-agency/queue": "workspace:*",
     "@ai-web-agency/shared": "workspace:*",
-    "openai": "^7.5.0"
+    "bullmq": "^6.0.9"
   },
   "devDependencies": {
+    "@types/node": "^24.3.0",
+    "tsx": "^4.20.5",
     "typescript": "catalog:",
     "vitest": "^3.2.4"
   }

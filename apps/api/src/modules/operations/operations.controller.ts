@@ -29,6 +29,7 @@ import {
   Inject,
   Param,
   Patch,
+  Post,
   Query,
 } from '@nestjs/common';
 import { z } from 'zod';
@@ -100,6 +101,20 @@ export class OperationsController {
     @Param('id', new ZodValidationPipe(uuidSchema)) id: string,
   ): Promise<OperationsJobDetail> {
     return this.service.job(id);
+  }
+
+  @Post('agent-jobs/:id/retry')
+  retryJob(
+    @Param('id', new ZodValidationPipe(uuidSchema)) id: string,
+  ): Promise<OperationsJobDetail> {
+    return this.service.retryJob(id);
+  }
+
+  @Post('agent-jobs/:id/cancel')
+  cancelJob(
+    @Param('id', new ZodValidationPipe(uuidSchema)) id: string,
+  ): Promise<OperationsJobDetail> {
+    return this.service.cancelJob(id);
   }
 
   @Get('templates')

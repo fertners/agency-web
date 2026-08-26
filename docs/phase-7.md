@@ -10,6 +10,8 @@
 - BullMQ deployment queue and independent worker;
 - durable deployment status, active version, URL, failure, and rollback history;
 - operator pages `/clients` and `/deployments`.
+- production service-token authentication with `ADMIN` and restricted
+  `OPERATOR` roles.
 
 ## Safety boundary
 

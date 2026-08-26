@@ -5,6 +5,7 @@ import {
   createProposalRequestSchema,
   createProspectNoteRequestSchema,
   updateProspectStatusRequestSchema,
+  prospectWorkflowRequestSchema,
 } from '@ai-web-agency/shared';
 import { revalidatePath } from 'next/cache';
 import {
@@ -14,6 +15,7 @@ import {
   convertProspect,
   updateProspectStatus,
   generateWebsiteFromProspect,
+  startProspectWorkflow,
 } from '@/lib/api';
 
 export async function updateStatusAction(id: string, formData: FormData) {
@@ -72,4 +74,23 @@ export async function generateWebsiteAction(id: string) {
   await generateWebsiteFromProspect(id);
   revalidatePath(`/prospects/${id}`);
   revalidatePath('/websites');
+}
+
+export async function startWorkflowAction(id: string, formData: FormData) {
+  const scopeValue = formData.get('scope');
+  await startProspectWorkflow(
+    id,
+    prospectWorkflowRequestSchema.parse({
+      websiteType: formData.get('websiteType'),
+      currency: 'EUR',
+      timelineDays: formData.get('timelineDays'),
+      scope: (typeof scopeValue === 'string' ? scopeValue : '')
+        .split('\n')
+        .map((item) => item.trim())
+        .filter(Boolean),
+    }),
+  );
+  revalidatePath(`/prospects/${id}`);
+  revalidatePath('/websites');
+  revalidatePath('/jobs');
 }

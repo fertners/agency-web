@@ -234,6 +234,15 @@ export class WebsiteRepository {
     }));
   }
 
+  async restoreVersion(
+    websiteId: string,
+    versionId: string,
+  ): Promise<WebsiteVersion> {
+    const source = await this.findVersion(websiteId, versionId);
+    if (source === undefined) throw new Error('Website version not found');
+    return this.createVersion(websiteId, source.config, { ready: true });
+  }
+
   setVersionReviewStatus(
     websiteId: string,
     versionId: string,

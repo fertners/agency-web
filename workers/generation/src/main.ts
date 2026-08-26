@@ -1,4 +1,4 @@
-import { AIClient, LocalAIProvider } from '@ai-web-agency/ai';
+import { AIClient, createAIProviderFromEnvironment } from '@ai-web-agency/ai';
 import {
   AICallRepository,
   AgentJobRepository,
@@ -10,7 +10,7 @@ import { createGenerationWorker } from './worker.js';
 
 const databaseClient = createDatabaseClient();
 const aiCalls = new AICallRepository(databaseClient.db);
-const ai = new AIClient(new LocalAIProvider(), {
+const ai = new AIClient(createAIProviderFromEnvironment(process.env), {
   record: (record) => aiCalls.record(record).then(() => undefined),
 });
 const worker = createGenerationWorker(

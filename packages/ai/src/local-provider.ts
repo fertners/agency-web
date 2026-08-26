@@ -18,6 +18,7 @@ import type {
 export class LocalAIProvider implements AIProvider {
   readonly name = 'local';
   readonly model = 'restaurant-deterministic-v1';
+  readonly supportsVision = false;
 
   generateRestaurantBrief(
     request: RestaurantBriefRequest,

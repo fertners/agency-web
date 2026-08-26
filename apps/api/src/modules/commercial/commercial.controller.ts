@@ -6,6 +6,7 @@ import {
   proposalDecisionRequestSchema,
   publicProposalDecisionSchema,
   updateProspectStatusRequestSchema,
+  prospectWorkflowRequestSchema,
   type CommunicationDraft,
   type ConversationDetail,
   type ConversationListResponse,
@@ -21,6 +22,8 @@ import {
   type PublicProposalDecisionResponse,
   type ProspectDetailResponse,
   type UpdateProspectStatusRequest,
+  type ProspectWorkflowRequest,
+  type CreateProspectWorkflowResponse,
 } from '@ai-web-agency/shared';
 import {
   Body,
@@ -69,6 +72,13 @@ export class CommercialController {
     request: CreateProposalRequest,
   ): Promise<Proposal> {
     return this.service.createProposal(id, request);
+  }
+  @Post('prospects/:id/workflow') startWorkflow(
+    @Param('id', new ZodValidationPipe(uuidSchema)) id: string,
+    @Body(new ZodValidationPipe(prospectWorkflowRequestSchema))
+    request: ProspectWorkflowRequest,
+  ): Promise<CreateProspectWorkflowResponse> {
+    return this.service.startWorkflow(id, request);
   }
   @Post('prospects/:id/conversations/drafts') createDraft(
     @Param('id', new ZodValidationPipe(uuidSchema)) id: string,

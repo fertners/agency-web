@@ -13,9 +13,30 @@ import {
   designReviewJobResultSchema,
   type DesignReviewJobPayload,
   type DesignReviewJobResult,
+  type BrowserReviewReport,
 } from '@ai-web-agency/shared';
 import { applyWebsiteCorrection } from '@ai-web-agency/websites';
 import type { Job } from 'bullmq';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+
+async function loadReviewScreenshots(
+  artifactsRoot: string,
+  report: Pick<BrowserReviewReport, 'screenshots'>,
+) {
+  const root = path.resolve(artifactsRoot);
+  return Promise.all(
+    report.screenshots.map(async (artifact) => {
+      const target = path.resolve(root, artifact.path);
+      if (!target.startsWith(`${root}${path.sep}`))
+        throw new Error('Screenshot path escapes artifacts root');
+      return {
+        mimeType: artifact.mimeType,
+        base64: (await readFile(target)).toString('base64'),
+      } as const;
+    }),
+  );
+}
 
 export function createDesignReviewProcessor(
   repositories: {
@@ -63,9 +84,13 @@ export function createDesignReviewProcessor(
           versionId: currentVersionId,
           artifactsRoot: options.artifactsRoot,
         });
+        const screenshots = ai.supportsVision
+          ? await loadReviewScreenshots(options.artifactsRoot, browserReport)
+          : undefined;
         const result = await ai.reviewWebsiteDesign({
           config: version.config,
           browserReport,
+          ...(screenshots === undefined ? {} : { screenshots }),
           jobId: job.id,
         });
         const passed =

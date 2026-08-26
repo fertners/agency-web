@@ -23,16 +23,26 @@ Les données affichées par le dashboard proviennent de l'API et de PostgreSQL. 
 ## Limites explicites à traiter
 
 - L'action `Analyze` d'un Prospect n'a pas encore son job BullMQ dédié ; l'analyse initiale est exécutée par le workflow Research.
-- `Generate Website` et `Generate Proposal` depuis la fiche Prospect ne sont pas encore des workflows orchestrés de bout en bout.
-- La comparaison visuelle V1/V2 et la restauration d'une ancienne version Website restent à ajouter. Le rollback de déploiement Phase 7 existe déjà.
+- `POST /prospects/:id/workflow` orchestre désormais en BullMQ la génération, le Design Review, SEO/QA et la création d'une proposition `NEEDS_REVIEW`. L'envoi reste interdit sans validation humaine.
+- `/websites/:id` compare les deux dernières versions et `Restore` crée une nouvelle version depuis une ancienne version approuvée, sans écrasement. Le rollback de déploiement Phase 7 reste séparé.
 - Barber et Hairdresser ne sont pas déclarés actifs : leur moteur de rendu réel n'est pas encore implémenté.
 - Le workflow de création/traitement d'une demande Client est modélisé en base mais n'a pas encore ses endpoints de mutation ni son worker.
 - L'analyse IA des conversations n'est pas branchée. Aucun envoi automatique ou fournisseur email n'est activé.
-- Retry/cancel des Agent Jobs ne sont pas exposés tant que l'annulation BullMQ atomique et les limites de retry ne sont pas garanties.
-- L'authentification, les rôles et les permissions administrateur ne font pas encore partie du projet ; Settings ne doit pas être exposé publiquement avant cette couche.
+- Retry/cancel sont exposés uniquement pour les états BullMQ compatibles et respectent `maxAttempts`.
+- En production, `ADMIN_API_TOKEN` est obligatoire. Un jeton `OPERATOR_API_TOKEN` optionnel permet les opérations ordinaires, mais pas Settings, les déploiements ni Retry/Cancel. Les propositions et captures nécessaires à leur affichage restent publiques.
 - Paiement réel, domaine personnalisé et déploiement cloud restent volontairement hors service faute de fournisseurs et décisions explicites.
 
 Ces limites sont des travaux futurs réels, pas des données fictives ni des boutons décoratifs.
+
+## Fournisseurs IA
+
+`AI_PROVIDER=local` conserve le comportement déterministe sans coût ni clé. Avec
+`AI_PROVIDER=openai`, `OPENAI_API_KEY` et `OPENAI_MODEL`, les workers Content et
+Design Critic utilisent la Responses API avec Structured Outputs, puis valident
+encore chaque résultat avec Zod. Le Design Critic transmet les captures desktop
+et mobile à la vision. Les règles SEO/QA, les transitions et les prix restent
+déterministes. Les appels, tokens, durée et erreurs sont persistés ; aucun secret
+n'est enregistré.
 
 # Proposition commerciale publique
 

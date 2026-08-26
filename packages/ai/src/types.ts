@@ -17,9 +17,14 @@ export type RestaurantBriefRequest = Readonly<{
   jobId: string;
 }>;
 export type AIProviderResult<T> = Readonly<{ output: T; usage?: AIUsage }>;
+export type AIImageInput = Readonly<{
+  mimeType: 'image/png';
+  base64: string;
+}>;
 export type DesignReviewRequest = Readonly<{
   config: RestaurantWebsiteConfig;
   browserReport: BrowserReviewReport;
+  screenshots?: readonly AIImageInput[];
   jobId: string;
 }>;
 export type WebsiteCorrectionRequest = Readonly<{
@@ -31,6 +36,7 @@ export type WebsiteCorrectionRequest = Readonly<{
 export interface AIProvider {
   readonly name: string;
   readonly model: string;
+  readonly supportsVision: boolean;
   generateRestaurantBrief(
     request: RestaurantBriefRequest,
   ): Promise<AIProviderResult<RestaurantBriefs>>;

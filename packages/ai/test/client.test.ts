@@ -47,6 +47,7 @@ describe('AIClient', () => {
     const provider: AIProvider = {
       name: 'invalid',
       model: 'invalid-v1',
+      supportsVision: false,
       generateRestaurantBrief: () =>
         Promise.resolve({ output: { content: {}, design: {} } as never }),
       reviewWebsiteDesign: () => Promise.reject(new Error('not used')),

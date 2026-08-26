@@ -71,6 +71,30 @@ export class AgentJobRepository {
       .where(eq(agentJobs.id, id));
   }
 
+  async markRetryRequested(id: string): Promise<void> {
+    await this.database
+      .update(agentJobs)
+      .set({
+        status: 'PENDING',
+        error: null,
+        completedAt: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(agentJobs.id, id));
+  }
+
+  async markCancelled(id: string): Promise<void> {
+    await this.database
+      .update(agentJobs)
+      .set({
+        status: 'CANCELLED',
+        error: null,
+        completedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(agentJobs.id, id));
+  }
+
   async markCompleted(
     id: string,
     attempt: number,

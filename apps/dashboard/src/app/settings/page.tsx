@@ -17,6 +17,12 @@ export default async function SettingsPage() {
           Les secrets restent exclusivement dans l’environnement ou un secret
           manager.
         </p>
+        <p className="mt-2 text-sm text-slate-500">
+          Fournisseur réellement utilisé par les workers :{' '}
+          <strong>{process.env.AI_PROVIDER ?? 'local'}</strong>. Le passage à
+          OpenAI nécessite AI_PROVIDER=openai et OPENAI_API_KEY dans leur
+          environnement d’exécution.
+        </p>
       </header>
       {!result ? (
         <Card>

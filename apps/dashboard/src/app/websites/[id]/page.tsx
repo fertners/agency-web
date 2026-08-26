@@ -6,7 +6,11 @@ import {
   getWebsites,
   getWebsiteVersions,
 } from '@/lib/api';
-import { startDesignReviewAction, startQualityReviewAction } from '../actions';
+import {
+  restoreVersionAction,
+  startDesignReviewAction,
+  startQualityReviewAction,
+} from '../actions';
 
 export const dynamic = 'force-dynamic';
 export default async function WebsitePage({
@@ -33,6 +37,8 @@ export default async function WebsitePage({
         .catch(() => []),
     })),
   );
+  const comparedVersions = versions.slice(-2);
+  const previewBaseUrl = process.env.PREVIEW_URL ?? 'http://127.0.0.1:3002';
   return (
     <main className="min-w-0 p-5 sm:p-8">
       <a className="text-sm text-violet-600" href="/websites">
@@ -46,6 +52,29 @@ export default async function WebsitePage({
         </p>
       </header>
       <div className="space-y-5">
+        {comparedVersions.length === 2 ? (
+          <Card>
+            <CardHeader className="flex-col">
+              <h2 className="font-semibold">Comparaison visuelle</h2>
+              <p className="text-sm text-slate-500">
+                Les deux versions les plus récentes sont rendues séparément.
+              </p>
+            </CardHeader>
+            <CardContent className="grid gap-4 xl:grid-cols-2">
+              {comparedVersions.map((version) => (
+                <div key={version.versionId}>
+                  <p className="mb-2 font-semibold">V{version.version}</p>
+                  <iframe
+                    className="h-[640px] w-full rounded-xl border bg-white"
+                    loading="lazy"
+                    src={`${previewBaseUrl}/preview/${id}/${version.versionId}`}
+                    title={`Prévisualisation V${version.version}`}
+                  />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        ) : null}
         {details.map(({ version, reviews, reports }) => {
           const review = reviews[0];
           const quality = reports[0];
@@ -62,13 +91,33 @@ export default async function WebsitePage({
                 </div>
                 <a
                   className="font-semibold text-violet-600"
-                  href={`${process.env.PREVIEW_URL ?? 'http://127.0.0.1:3002'}/preview/${id}/${version.versionId}`}
+                  href={`${previewBaseUrl}/preview/${id}/${version.versionId}`}
                   target="_blank"
                 >
                   Open Preview
                 </a>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-3">
+                {version.status === 'APPROVED' ? (
+                  <form
+                    action={restoreVersionAction}
+                    className="rounded-xl border border-amber-200 bg-amber-50 p-4 md:col-span-3"
+                  >
+                    <input name="websiteId" type="hidden" value={id} />
+                    <input
+                      name="versionId"
+                      type="hidden"
+                      value={version.versionId}
+                    />
+                    <p className="text-sm text-amber-900">
+                      Restaurer crée une nouvelle version sans écraser V
+                      {version.version}.
+                    </p>
+                    <button className="mt-2 text-sm font-semibold text-amber-900">
+                      Restore V{version.version}
+                    </button>
+                  </form>
+                ) : null}
                 {generation ? (
                   <div className="rounded-xl bg-violet-50 p-4 md:col-span-3">
                     <p className="text-sm font-semibold text-violet-800">

@@ -41,6 +41,7 @@ import {
 import { z } from 'zod';
 
 import { DatabaseService } from '../../infrastructure/database/database.service.js';
+import { AgentJobQueueControlService } from '../../infrastructure/queue/agent-job-queue-control.service.js';
 
 function average(values: number[]): number | null {
   if (values.length === 0) return null;
@@ -51,6 +52,7 @@ function average(values: number[]): number | null {
 
 const SETTING_VALUE_SCHEMAS: Readonly<Record<string, z.ZodType>> = {
   'ai.defaultProvider': z.string().trim().min(1).max(80),
+  'ai.model': z.string().trim().min(1).max(120),
   'ai.maxIterations': z.number().int().min(1).max(10),
   'ai.maxJobBudget': z.number().min(0).max(1_000),
   'agents.maxRetries': z.number().int().min(0).max(10),
@@ -147,6 +149,8 @@ function toJob(job: AgentJob, calls: AICall[]): OperationsJob {
 export class OperationsService {
   constructor(
     @Inject(DatabaseService) private readonly database: DatabaseService,
+    @Inject(AgentJobQueueControlService)
+    private readonly queueControl: AgentJobQueueControlService,
   ) {}
 
   async companies(query: CompanyQuery): Promise<CompanyListResponse> {
@@ -248,6 +252,44 @@ export class OperationsService {
         metadata: log.metadata,
       })),
     });
+  }
+
+  async retryJob(id: string): Promise<OperationsJobDetail> {
+    const job = await this.database.agentJobs.findById(id);
+    if (job === undefined) throw new NotFoundException('Agent job not found');
+    if (job.status !== 'FAILED')
+      throw new BadRequestException('Only failed jobs can be retried');
+    if (job.attempt >= job.maxAttempts)
+      throw new BadRequestException('Maximum retries reached');
+    if (job.queueName === null || job.queueJobId === null)
+      throw new BadRequestException('Job has no queue identity');
+    try {
+      await this.queueControl.retry(job.queueName, job.queueJobId);
+      await this.database.agentJobs.markRetryRequested(id);
+    } catch (error) {
+      throw new BadRequestException(
+        error instanceof Error ? error.message : 'Unable to retry job',
+      );
+    }
+    return this.job(id);
+  }
+
+  async cancelJob(id: string): Promise<OperationsJobDetail> {
+    const job = await this.database.agentJobs.findById(id);
+    if (job === undefined) throw new NotFoundException('Agent job not found');
+    if (job.status !== 'PENDING')
+      throw new BadRequestException('Only pending jobs can be cancelled');
+    if (job.queueName === null || job.queueJobId === null)
+      throw new BadRequestException('Job has no queue identity');
+    try {
+      await this.queueControl.cancel(job.queueName, job.queueJobId);
+      await this.database.agentJobs.markCancelled(id);
+    } catch (error) {
+      throw new BadRequestException(
+        error instanceof Error ? error.message : 'Unable to cancel job',
+      );
+    }
+    return this.job(id);
   }
 
   async templates(): Promise<TemplateList> {

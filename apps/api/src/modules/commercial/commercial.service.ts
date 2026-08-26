@@ -28,6 +28,10 @@ import {
   type PublicProposalDecisionResponse,
   type ProspectDetailResponse,
   type UpdateProspectStatusRequest,
+  type ProspectWorkflowRequest,
+  type CreateProspectWorkflowResponse,
+  prospectWorkflowJobPayloadSchema,
+  createProspectWorkflowResponseSchema,
 } from '@ai-web-agency/shared';
 import {
   BadRequestException,
@@ -43,6 +47,7 @@ import {
   buildCommercialProposalContent,
   PROPOSAL_PRICE_CENTS,
 } from './proposal-content.js';
+import { OrchestrationQueueService } from '../../infrastructure/queue/orchestration-queue.service.js';
 
 function toProposal(row: {
   id: string;
@@ -95,7 +100,49 @@ export class CommercialService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     @Inject(DatabaseService) private readonly database: DatabaseService,
+    @Inject(OrchestrationQueueService)
+    private readonly orchestrationQueue: OrchestrationQueueService,
   ) {}
+
+  async startWorkflow(
+    prospectId: string,
+    request: ProspectWorkflowRequest,
+  ): Promise<CreateProspectWorkflowResponse> {
+    const prospect = await this.database.commercial.findProspect(prospectId);
+    if (prospect === undefined)
+      throw new NotFoundException('Prospect not found');
+    if (prospect.prospect.assessment === null)
+      throw new BadRequestException(
+        'A verified prospect analysis is required before starting the workflow',
+      );
+    const payload = prospectWorkflowJobPayloadSchema.parse({
+      prospectId,
+      ...request,
+    });
+    const job = await this.database.agentJobs.createTyped(
+      'workflow.prospect-proposal',
+      payload,
+    );
+    try {
+      const queueJobId = await this.orchestrationQueue.add(job.id, payload);
+      await this.database.agentJobs.markQueued(
+        job.id,
+        this.orchestrationQueue.name,
+        queueJobId,
+      );
+    } catch {
+      await this.database.agentJobs.markFailed(
+        job.id,
+        0,
+        'Unable to enqueue prospect workflow',
+      );
+      throw new Error('Unable to enqueue prospect workflow');
+    }
+    return createProspectWorkflowResponseSchema.parse({
+      jobId: job.id,
+      status: 'PENDING',
+    });
+  }
 
   onModuleInit(): void {
     void this.cleanupExpiredProposals();

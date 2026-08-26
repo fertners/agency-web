@@ -10,6 +10,7 @@ import { revalidatePath } from 'next/cache';
 import {
   createRestaurantWebsite,
   reviewWebsiteVersion,
+  restoreWebsiteVersion,
   startDesignReview,
   startQualityReview,
 } from '@/lib/api';
@@ -23,6 +24,14 @@ export type GenerationFormState = Readonly<{
 function value(formData: FormData, name: string): string {
   const input = formData.get(name);
   return typeof input === 'string' ? input.trim() : '';
+}
+
+export async function restoreVersionAction(formData: FormData): Promise<void> {
+  const websiteId = websiteIdSchema.parse(value(formData, 'websiteId'));
+  const versionId = websiteVersionIdSchema.parse(value(formData, 'versionId'));
+  await restoreWebsiteVersion(websiteId, versionId);
+  revalidatePath(`/websites/${websiteId}`);
+  revalidatePath('/websites');
 }
 
 export async function reviewVersionAction(formData: FormData): Promise<void> {

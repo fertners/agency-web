@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { getOperationsJob } from '@/lib/api';
+import { cancelJobAction, retryJobAction } from '../actions';
 export const dynamic = 'force-dynamic';
 export default async function JobPage({
   params,
@@ -16,6 +17,24 @@ export default async function JobPage({
         ← Jobs
       </a>
       <h1 className="my-6 text-3xl font-bold">Job {job.id.slice(0, 8)}</h1>
+      <div className="mb-5 flex flex-wrap gap-3">
+        {job.status === 'FAILED' && job.retries < job.maxRetries ? (
+          <form action={retryJobAction}>
+            <input name="jobId" type="hidden" value={job.id} />
+            <button className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white">
+              Retry
+            </button>
+          </form>
+        ) : null}
+        {job.status === 'PENDING' ? (
+          <form action={cancelJobAction}>
+            <input name="jobId" type="hidden" value={job.id} />
+            <button className="rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-700">
+              Annuler
+            </button>
+          </form>
+        ) : null}
+      </div>
       <section className="grid gap-5 xl:grid-cols-2">
         <Card>
           <CardHeader>

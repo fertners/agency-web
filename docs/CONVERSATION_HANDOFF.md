@@ -124,3 +124,24 @@ Les détails de conformité et les limites restantes sont consignés dans `docs/
 - La page publique affiche la capture, conserve un lien secondaire vers la
   preview interactive et propose un bouton **Répondre à cette proposition** qui
   mène aux choix accepter/refuser.
+
+## Orchestration, IA optionnelle et sécurité — 26 août 2026
+
+- Ajout du worker `@ai-web-agency/orchestration-worker` et de
+  `POST /prospects/:id/workflow` : génération → Design Review → SEO/QA →
+  proposition `NEEDS_REVIEW`, sans envoi automatique.
+- Validation réelle sur Clay's Downtown Restaurant : Website V2, Design 92,
+  SEO/QA 100 et proposition V5 à 250 EUR.
+- Ajout d'un `OpenAIProvider` optionnel via la Responses API et Structured
+  Outputs. `AI_PROVIDER=local` reste la valeur locale par défaut. Les captures
+  Playwright desktop/mobile sont fournies au modèle vision lorsqu'OpenAI est
+  activé, puis les sorties sont revalidées par Zod.
+- Ajout de la comparaison visuelle des deux dernières Website Versions et d'un
+  restore non destructif réservé aux versions approuvées.
+- Ajout de Retry/Cancel contrôlés pour les Agent Jobs.
+- Ajout d'une protection de production par `ADMIN_API_TOKEN` et rôle
+  `OPERATOR_API_TOKEN` restreint. Les secrets restent dans l'environnement.
+- Migration `0014_ai_provider_runtime_defaults.sql` : fournisseur local par
+  défaut et modèle OpenAI configurable. Son SQL idempotent a été appliqué
+  directement sur la base locale après une erreur mémoire Windows de Drizzle
+  CLI ; il pourra être rejoué normalement par Drizzle.

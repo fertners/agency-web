@@ -88,10 +88,21 @@ import {
   type TemplateList,
   type TemplateDetail,
   type UpdateSettingsRequest,
+  createProspectWorkflowResponseSchema,
+  type ProspectWorkflowRequest,
+  type CreateProspectWorkflowResponse,
 } from '@ai-web-agency/shared';
 
 function getApiUrl(): string {
   return process.env.API_URL ?? 'http://127.0.0.1:3001';
+}
+
+function apiHeaders(json = false): Headers {
+  const headers = new Headers();
+  if (json) headers.set('content-type', 'application/json');
+  const token = process.env.ADMIN_API_TOKEN?.trim();
+  if (token) headers.set('authorization', `Bearer ${token}`);
+  return headers;
 }
 
 export async function getProspects(): Promise<ProspectListResponse> {
@@ -102,7 +113,7 @@ export async function searchProspects(
 ): Promise<CreateProspectSearchResponse> {
   const response = await fetch(`${getApiUrl()}/prospects/search`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: apiHeaders(true),
     body: JSON.stringify(request),
     cache: 'no-store',
   });
@@ -118,7 +129,7 @@ async function mutate(
 ): Promise<unknown> {
   const response = await fetch(`${getApiUrl()}${path}`, {
     method,
-    headers: { 'content-type': 'application/json' },
+    headers: apiHeaders(true),
     body: JSON.stringify(body),
     cache: 'no-store',
   });
@@ -296,7 +307,10 @@ export async function rollbackDeployment(
 }
 
 async function getJson(path: string): Promise<unknown> {
-  const response = await fetch(`${getApiUrl()}${path}`, { cache: 'no-store' });
+  const response = await fetch(`${getApiUrl()}${path}`, {
+    headers: apiHeaders(),
+    cache: 'no-store',
+  });
   if (!response.ok)
     throw new Error(`API request failed with ${response.status}`);
   return response.json() as Promise<unknown>;
@@ -350,6 +364,22 @@ export async function getOperationsJob(
   );
 }
 
+export async function retryOperationsJob(
+  id: string,
+): Promise<OperationsJobDetail> {
+  return operationsJobDetailSchema.parse(
+    await mutate(`/agent-jobs/${encodeURIComponent(id)}/retry`, 'POST', {}),
+  );
+}
+
+export async function cancelOperationsJob(
+  id: string,
+): Promise<OperationsJobDetail> {
+  return operationsJobDetailSchema.parse(
+    await mutate(`/agent-jobs/${encodeURIComponent(id)}/cancel`, 'POST', {}),
+  );
+}
+
 export async function getTemplates(): Promise<TemplateList> {
   return templateListSchema.parse(await getJson('/templates'));
 }
@@ -382,7 +412,7 @@ export async function getJobs(): Promise<AgentJobListResponse> {
 export async function createDiagnosticJob(): Promise<void> {
   const response = await fetch(`${getApiUrl()}/jobs/diagnostic`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: apiHeaders(true),
     body: '{}',
     cache: 'no-store',
   });
@@ -398,7 +428,7 @@ export async function createRestaurantWebsite(
 ): Promise<CreateRestaurantWebsiteResponse> {
   const response = await fetch(`${getApiUrl()}/websites/generate`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: apiHeaders(true),
     body: JSON.stringify(request),
     cache: 'no-store',
   });
@@ -420,6 +450,19 @@ export async function generateWebsiteFromProspect(
   );
 }
 
+export async function startProspectWorkflow(
+  prospectId: string,
+  request: ProspectWorkflowRequest,
+): Promise<CreateProspectWorkflowResponse> {
+  return createProspectWorkflowResponseSchema.parse(
+    await mutate(
+      `/prospects/${encodeURIComponent(prospectId)}/workflow`,
+      'POST',
+      request,
+    ),
+  );
+}
+
 export async function getWebsiteVersions(
   websiteId: string,
 ): Promise<WebsiteVersionListResponse> {
@@ -435,11 +478,24 @@ export async function reviewWebsiteVersion(
 ): Promise<WebsiteVersionResponse> {
   const response = await fetch(
     `${getApiUrl()}/websites/${encodeURIComponent(websiteId)}/versions/${encodeURIComponent(versionId)}/${decision}`,
-    { method: 'POST', cache: 'no-store' },
+    { method: 'POST', headers: apiHeaders(), cache: 'no-store' },
   );
   const body: unknown = await response.json();
   if (!response.ok) throw new Error('La décision n’a pas pu être enregistrée.');
   return websiteVersionResponseSchema.parse(body);
+}
+
+export async function restoreWebsiteVersion(
+  websiteId: string,
+  versionId: string,
+): Promise<WebsiteVersionResponse> {
+  return websiteVersionResponseSchema.parse(
+    await mutate(
+      `/websites/${encodeURIComponent(websiteId)}/versions/${encodeURIComponent(versionId)}/restore`,
+      'POST',
+      {},
+    ),
+  );
 }
 
 export async function startDesignReview(
@@ -448,7 +504,7 @@ export async function startDesignReview(
 ): Promise<CreateDesignReviewResponse> {
   const response = await fetch(
     `${getApiUrl()}/websites/${encodeURIComponent(websiteId)}/versions/${encodeURIComponent(versionId)}/design-review`,
-    { method: 'POST', cache: 'no-store' },
+    { method: 'POST', headers: apiHeaders(), cache: 'no-store' },
   );
   const body: unknown = await response.json();
   if (!response.ok) throw new Error('L’analyse design n’a pas pu démarrer.');
@@ -472,7 +528,7 @@ export async function startQualityReview(
 ): Promise<CreateQualityReviewResponse> {
   const response = await fetch(
     `${getApiUrl()}/websites/${encodeURIComponent(websiteId)}/versions/${encodeURIComponent(versionId)}/quality`,
-    { method: 'POST', cache: 'no-store' },
+    { method: 'POST', headers: apiHeaders(), cache: 'no-store' },
   );
   const body: unknown = await response.json();
   if (!response.ok) throw new Error('L’audit qualité n’a pas pu démarrer.');

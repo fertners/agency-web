@@ -151,4 +151,14 @@ export class WebsitesController {
   ): Promise<WebsiteVersionResponse> {
     return this.websitesService.reviewVersion(websiteId, versionId, 'REJECTED');
   }
+
+  @Post(':websiteId/versions/:versionId/restore')
+  restoreVersion(
+    @Param('websiteId', new ZodValidationPipe(websiteIdSchema))
+    websiteId: string,
+    @Param('versionId', new ZodValidationPipe(websiteVersionIdSchema))
+    versionId: string,
+  ): Promise<WebsiteVersionResponse> {
+    return this.websitesService.restoreVersion(websiteId, versionId);
+  }
 }

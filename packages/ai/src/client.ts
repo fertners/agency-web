@@ -20,6 +20,10 @@ export class AIClient {
     private readonly recorder: AIUsageRecorder = noOpRecorder,
   ) {}
 
+  get supportsVision(): boolean {
+    return this.provider.supportsVision;
+  }
+
   async generateRestaurantBrief(input: {
     business: unknown;
     jobId: string;
@@ -70,6 +74,7 @@ export class AIClient {
   async reviewWebsiteDesign(input: {
     config: unknown;
     browserReport: unknown;
+    screenshots?: readonly { mimeType: 'image/png'; base64: string }[];
     jobId: string;
   }): Promise<DesignReviewResult> {
     const config = restaurantWebsiteConfigSchema.parse(input.config);
@@ -83,6 +88,9 @@ export class AIClient {
         this.provider.reviewWebsiteDesign({
           config,
           browserReport,
+          ...(input.screenshots === undefined
+            ? {}
+            : { screenshots: input.screenshots }),
           jobId: input.jobId,
         }),
     );

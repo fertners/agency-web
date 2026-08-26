@@ -409,6 +409,25 @@ export class WebsitesService {
     }
   }
 
+  async restoreVersion(
+    websiteId: string,
+    versionId: string,
+  ): Promise<WebsiteVersionResponse> {
+    const source = await this.database.websites.findVersion(
+      websiteId,
+      versionId,
+    );
+    if (source === undefined)
+      throw new NotFoundException('Website version not found');
+    if (source.status !== 'APPROVED')
+      throw new BadRequestException('Only approved versions can be restored');
+    const restored = await this.database.websites.restoreVersion(
+      websiteId,
+      versionId,
+    );
+    return this.toVersionResponse(restored);
+  }
+
   private toVersionResponse(version: {
     id: string;
     websiteId: string;

@@ -99,6 +99,13 @@
       "when": 1787765000000,
       "tag": "0013_proposal_offers_and_preview_capture",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1787769000000,
+      "tag": "0014_ai_provider_runtime_defaults",
+      "breakpoints": true
     }
   ]
 }

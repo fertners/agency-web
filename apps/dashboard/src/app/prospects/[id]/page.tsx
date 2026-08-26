@@ -11,6 +11,7 @@ import {
   convertProspectAction,
   updateStatusAction,
   generateWebsiteAction,
+  startWorkflowAction,
 } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -51,6 +52,40 @@ export default async function ProspectDetailPage({
           <CardContent>
             <form action={generateWebsiteAction.bind(null, id)}>
               <Button type="submit">Generate Website</Button>
+            </form>
+            <form
+              action={startWorkflowAction.bind(null, id)}
+              className="mt-5 grid gap-3 sm:grid-cols-2"
+            >
+              <select
+                className="rounded-lg border p-2"
+                defaultValue="SHOWCASE"
+                name="websiteType"
+              >
+                <option value="SHOWCASE">Vitrine — 250 €</option>
+                <option value="DYNAMIC">Dynamique — 1 000 €</option>
+              </select>
+              <input
+                className="rounded-lg border p-2"
+                defaultValue="21"
+                min="1"
+                name="timelineDays"
+                type="number"
+              />
+              <textarea
+                className="min-h-24 rounded-lg border p-2 sm:col-span-2"
+                defaultValue={
+                  'Site restaurant responsive\nSEO local\nFormulaire de contact'
+                }
+                name="scope"
+              />
+              <Button className="sm:col-span-2" type="submit">
+                Lancer le workflow complet
+              </Button>
+              <p className="text-xs text-slate-500 sm:col-span-2">
+                Génération → Design Review → SEO/QA → proposition à valider.
+                Aucun message n’est envoyé automatiquement.
+              </p>
             </form>
           </CardContent>
         </Card>

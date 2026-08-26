@@ -48,3 +48,10 @@ export {
   DEPLOYMENT_QUEUE_NAME,
   type DeploymentQueue,
 } from './deployment.js';
+export {
+  createOrchestrationQueue,
+  ORCHESTRATION_JOB_OPTIONS,
+  ORCHESTRATION_QUEUE_NAME,
+  PROSPECT_WORKFLOW_JOB_NAME,
+  type OrchestrationQueue,
+} from './orchestration.js';
