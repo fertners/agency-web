@@ -56,6 +56,45 @@ export class WebsiteRepository {
     });
   }
 
+  createRestaurantWebsiteForCompany(
+    companyId: string,
+    input: RestaurantBusinessData,
+  ): Promise<CreatedRestaurantWebsite> {
+    const data = restaurantBusinessDataSchema.parse(input);
+    return this.database.transaction(async (transaction) => {
+      const [existing] = await transaction
+        .select({ website: websites, business: businesses })
+        .from(websites)
+        .innerJoin(businesses, eq(businesses.id, websites.businessId))
+        .where(eq(websites.companyId, companyId))
+        .orderBy(desc(websites.createdAt))
+        .limit(1);
+      if (existing !== undefined) {
+        return {
+          website: existing.website,
+          business: {
+            ...existing.business,
+            data: restaurantBusinessDataSchema.parse(existing.business.data),
+          },
+        };
+      }
+
+      const [business] = await transaction
+        .insert(businesses)
+        .values({ kind: data.kind, name: data.name, slug: data.slug, data })
+        .returning();
+      if (business === undefined)
+        throw new Error('Failed to create restaurant business');
+      const [website] = await transaction
+        .insert(websites)
+        .values({ businessId: business.id, companyId })
+        .returning();
+      if (website === undefined)
+        throw new Error('Failed to create company website');
+      return { business, website };
+    });
+  }
+
   async findWebsiteById(id: string): Promise<Website | undefined> {
     const [website] = await this.database
       .select()
@@ -171,6 +210,9 @@ export class WebsiteRepository {
       await transaction
         .update(websites)
         .set({
+          ...(config.generation === undefined
+            ? {}
+            : { templateKey: config.generation.theme.themeKey }),
           ...(options.ready === true ? { status: 'READY' as const } : {}),
           updatedAt: new Date(),
         })
@@ -228,6 +270,14 @@ export class WebsiteRepository {
         )
         .returning();
       if (updated === undefined) throw new Error('Website version not found');
+
+      await transaction
+        .update(websites)
+        .set({
+          status: status === 'APPROVED' ? 'APPROVED' : 'NEEDS_CHANGES',
+          updatedAt: new Date(),
+        })
+        .where(eq(websites.id, websiteId));
 
       return {
         ...updated,

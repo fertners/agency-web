@@ -1,5 +1,6 @@
 import {
   createRestaurantWebsiteRequestSchema,
+  prospectIdSchema,
   websiteIdSchema,
   websiteVersionIdSchema,
   type CreateRestaurantWebsiteRequest,
@@ -37,6 +38,14 @@ export class WebsitesController {
     request: CreateRestaurantWebsiteRequest,
   ): Promise<CreateRestaurantWebsiteResponse> {
     return this.websitesService.generateRestaurant(request);
+  }
+
+  @Post('from-prospect/:prospectId')
+  generateFromProspect(
+    @Param('prospectId', new ZodValidationPipe(prospectIdSchema))
+    prospectId: string,
+  ): Promise<CreateRestaurantWebsiteResponse> {
+    return this.websitesService.generateFromProspect(prospectId);
   }
 
   @Post(':websiteId/versions/:versionId/quality')

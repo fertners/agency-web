@@ -11,10 +11,17 @@ import {
 } from 'drizzle-orm/pg-core';
 import { agentJobs } from './agent-jobs.js';
 import { proposals } from './commercial.js';
-import { prospects } from './prospects.js';
+import { companies, prospects } from './prospects.js';
 import { websites, websiteVersions } from './websites.js';
 
-export const clientStatusEnum = pgEnum('client_status', ['ACTIVE', 'INACTIVE']);
+export const clientStatusEnum = pgEnum('client_status', [
+  'ONBOARDING',
+  'ACTIVE',
+  'PAUSED',
+  'CANCELLED',
+  'COMPLETED',
+  'INACTIVE',
+]);
 export const projectStatusEnum = pgEnum('project_status', [
   'PLANNED',
   'ACTIVE',
@@ -40,8 +47,14 @@ export const clients = pgTable(
     prospectId: uuid('prospect_id')
       .notNull()
       .references(() => prospects.id, { onDelete: 'restrict' }),
+    companyId: uuid('company_id').references(() => companies.id, {
+      onDelete: 'restrict',
+    }),
     name: text('name').notNull(),
     status: clientStatusEnum('status').notNull().default('ACTIVE'),
+    convertedAt: timestamp('converted_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

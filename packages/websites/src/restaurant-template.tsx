@@ -132,11 +132,21 @@ function renderSection(
       );
     case 'LOCATION':
       return (
-        <Section eyebrow="Bordeaux" title="Nous trouver">
+        <Section
+          id="location"
+          eyebrow={business.address.city}
+          title="Nous trouver"
+        >
           <address className="awa-lead">
-            {business.address.street}
-            <br />
-            {business.address.postalCode} {business.address.city}
+            {business.address.street === undefined ? null : (
+              <>
+                {business.address.street}
+                <br />
+              </>
+            )}
+            {business.address.postalCode === undefined
+              ? business.address.city
+              : `${business.address.postalCode} ${business.address.city}`}
           </address>
         </Section>
       );
@@ -158,6 +168,9 @@ function renderSection(
                 {business.contact.email}
               </a>
             )}
+            {business.contact.website === undefined ? null : (
+              <a href={business.contact.website}>Site actuel</a>
+            )}
           </div>
         </Section>
       );
@@ -166,7 +179,12 @@ function renderSection(
         <section className="awa-cta">
           <div className="awa-container">
             <h2>{config.content.headline}</h2>
-            <a className="awa-button" href="#contact">
+            <a
+              className="awa-button"
+              href={
+                config.sections.includes('CONTACT') ? '#contact' : '#location'
+              }
+            >
               {config.content.primaryCallToAction}
             </a>
           </div>
@@ -195,9 +213,20 @@ export function RestaurantTemplate({
     '--awa-accent': config.design.accentColor,
     '--awa-background': config.design.backgroundColor,
     '--awa-text': config.design.textColor,
+    '--awa-heading-font': config.design.headingFont,
+    '--awa-body-font': config.design.bodyFont,
+    '--awa-button-radius':
+      config.design.buttonRadius === 'NONE'
+        ? '0'
+        : config.design.buttonRadius === 'SOFT'
+          ? '0.75rem'
+          : '999px',
   };
   return (
-    <main className="awa-site" style={style}>
+    <main
+      className={`awa-site awa-hero-${config.design.heroLayout.toLocaleLowerCase()}`}
+      style={style}
+    >
       {config.sections.map((section) => (
         <div key={section}>{renderSection(section, config)}</div>
       ))}

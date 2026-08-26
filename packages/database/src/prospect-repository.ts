@@ -6,7 +6,8 @@ import {
 } from '@ai-web-agency/shared';
 import { desc, eq } from 'drizzle-orm';
 import type { Database } from './client.js';
-import { companies, prospects } from './schema/index.js';
+import { hashContactIdentity } from './contact-identity.js';
+import { companies, contactSuppressions, prospects } from './schema/index.js';
 
 export class ProspectRepository {
   constructor(private readonly database: Database) {}
@@ -17,6 +18,13 @@ export class ProspectRepository {
   ): Promise<{ created: boolean }> {
     const candidate = companyCandidateSchema.parse(candidateInput);
     const assessment = opportunityAssessmentSchema.parse(assessmentInput);
+    const [suppression] = await this.database
+      .select({ id: contactSuppressions.id })
+      .from(contactSuppressions)
+      .where(
+        eq(contactSuppressions.identityHash, hashContactIdentity(fingerprint)),
+      );
+    if (suppression !== undefined) return { created: false };
     const [existing] = await this.database
       .select({ id: companies.id })
       .from(companies)
@@ -28,6 +36,7 @@ export class ProspectRepository {
         source: candidate.source,
         externalId: candidate.externalId,
         name: candidate.name,
+        description: candidate.description,
         category: candidate.category,
         countryCode: candidate.countryCode,
         city: candidate.city,
@@ -36,6 +45,13 @@ export class ProspectRepository {
         websiteUrl: candidate.websiteUrl,
         email: candidate.email,
         phone: candidate.phone,
+        socialLinks: candidate.socialLinks,
+        openingHours:
+          candidate.openingHoursRaw === undefined
+            ? undefined
+            : { source: candidate.source, raw: candidate.openingHoursRaw },
+        logoUrl: candidate.logoUrl,
+        imageUrls: candidate.imageUrls,
         raw: candidate,
       })
       .onConflictDoUpdate({
@@ -44,6 +60,7 @@ export class ProspectRepository {
           source: candidate.source,
           externalId: candidate.externalId,
           name: candidate.name,
+          description: candidate.description,
           category: candidate.category,
           countryCode: candidate.countryCode,
           city: candidate.city,
@@ -52,6 +69,13 @@ export class ProspectRepository {
           websiteUrl: candidate.websiteUrl,
           email: candidate.email,
           phone: candidate.phone,
+          socialLinks: candidate.socialLinks,
+          openingHours:
+            candidate.openingHoursRaw === undefined
+              ? undefined
+              : { source: candidate.source, raw: candidate.openingHoursRaw },
+          logoUrl: candidate.logoUrl,
+          imageUrls: candidate.imageUrls,
           raw: candidate,
           updatedAt: new Date(),
         },
@@ -62,8 +86,10 @@ export class ProspectRepository {
       .insert(prospects)
       .values({
         companyId: company.id,
+        status: 'DISCOVERED',
         opportunityScore: assessment.score,
         assessment,
+        nextAction: 'Analyser et qualifier cette opportunité',
       })
       .onConflictDoUpdate({
         target: prospects.companyId,

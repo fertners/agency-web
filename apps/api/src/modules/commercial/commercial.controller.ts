@@ -4,8 +4,10 @@ import {
   createProspectNoteRequestSchema,
   draftDecisionRequestSchema,
   proposalDecisionRequestSchema,
+  publicProposalDecisionSchema,
   updateProspectStatusRequestSchema,
   type CommunicationDraft,
+  type ConversationDetail,
   type ConversationListResponse,
   type CreateDraftRequest,
   type CreateProposalRequest,
@@ -14,6 +16,9 @@ import {
   type Proposal,
   type ProposalDecisionRequest,
   type ProposalListResponse,
+  type PublicProposal,
+  type PublicProposalDecision,
+  type PublicProposalDecisionResponse,
   type ProspectDetailResponse,
   type UpdateProspectStatusRequest,
 } from '@ai-web-agency/shared';
@@ -31,6 +36,7 @@ import { ZodValidationPipe } from '../../common/zod-validation.pipe.js';
 import { CommercialService } from './commercial.service.js';
 
 const uuidSchema = z.uuid();
+const publicTokenSchema = z.string().regex(/^[A-Za-z0-9_-]{43}$/);
 
 @Controller()
 export class CommercialController {
@@ -81,8 +87,25 @@ export class CommercialController {
   ): Promise<Proposal> {
     return this.service.decideProposal(id, request);
   }
+  @Get('public/proposals/:token') getPublicProposal(
+    @Param('token', new ZodValidationPipe(publicTokenSchema)) token: string,
+  ): Promise<PublicProposal> {
+    return this.service.getPublicProposal(token);
+  }
+  @Post('public/proposals/:token/respond') respondToPublicProposal(
+    @Param('token', new ZodValidationPipe(publicTokenSchema)) token: string,
+    @Body(new ZodValidationPipe(publicProposalDecisionSchema))
+    request: PublicProposalDecision,
+  ): Promise<PublicProposalDecisionResponse> {
+    return this.service.respondToPublicProposal(token, request.decision);
+  }
   @Get('conversations') listConversations(): Promise<ConversationListResponse> {
     return this.service.listConversations();
+  }
+  @Get('conversations/:id') getConversation(
+    @Param('id', new ZodValidationPipe(uuidSchema)) id: string,
+  ): Promise<ConversationDetail> {
+    return this.service.getConversation(id);
   }
   @Post('conversations/drafts/:id/decision') decideDraft(
     @Param('id', new ZodValidationPipe(uuidSchema)) id: string,

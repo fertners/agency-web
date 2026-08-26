@@ -13,10 +13,15 @@ export function Hero({
       )}
       <div className="awa-hero-overlay" />
       <div className="awa-container awa-hero-content">
-        <p className="awa-eyebrow">{config.business.cuisines.join(' · ')}</p>
+        {config.business.cuisines.length === 0 ? null : (
+          <p className="awa-eyebrow">{config.business.cuisines.join(' · ')}</p>
+        )}
         <h1>{config.content.headline}</h1>
         <p className="awa-hero-copy">{config.content.subheadline}</p>
-        <a className="awa-button" href="#contact">
+        <a
+          className="awa-button"
+          href={config.sections.includes('CONTACT') ? '#contact' : '#location'}
+        >
           {config.content.primaryCallToAction}
         </a>
       </div>

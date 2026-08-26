@@ -1,6 +1,13 @@
 import { z } from 'zod';
 
-export const clientStatusSchema = z.enum(['ACTIVE', 'INACTIVE']);
+export const clientStatusSchema = z.enum([
+  'ONBOARDING',
+  'ACTIVE',
+  'PAUSED',
+  'CANCELLED',
+  'COMPLETED',
+  'INACTIVE',
+]);
 export const projectStatusSchema = z.enum([
   'PLANNED',
   'ACTIVE',
@@ -33,8 +40,10 @@ export const clientSchema = z
   .object({
     id: z.uuid(),
     prospectId: z.uuid(),
+    companyId: z.uuid().nullable(),
     name: z.string(),
     status: clientStatusSchema,
+    convertedAt: z.iso.datetime(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
   })
@@ -70,9 +79,6 @@ export const deploymentSchema = z
     completedAt: z.iso.datetime().nullable(),
   })
   .strict();
-export const clientDetailSchema = z
-  .object({ client: clientSchema, projects: z.array(projectSchema) })
-  .strict();
 export const convertProspectResponseSchema = z
   .object({ client: clientSchema, project: projectSchema })
   .strict();
@@ -84,6 +90,43 @@ export const projectListResponseSchema = z
   .strict();
 export const deploymentListResponseSchema = z
   .object({ deployments: z.array(deploymentSchema) })
+  .strict();
+export const clientDetailSchema = z
+  .object({
+    client: clientSchema,
+    projects: z.array(projectSchema),
+    payments: z.array(
+      z.object({
+        id: z.uuid(),
+        projectId: z.uuid().nullable(),
+        provider: z.string(),
+        status: z.enum(['PENDING', 'PAID', 'FAILED', 'REFUNDED', 'CANCELLED']),
+        amountCents: z.number().int().nonnegative(),
+        currency: z.string().length(3),
+        createdAt: z.iso.datetime(),
+      }),
+    ),
+    requests: z.array(
+      z.object({
+        id: z.uuid(),
+        projectId: z.uuid().nullable(),
+        websiteId: z.uuid().nullable(),
+        status: z.enum([
+          'NEW',
+          'ANALYZING',
+          'PLANNED',
+          'IN_PROGRESS',
+          'NEEDS_REVIEW',
+          'APPROVED',
+          'PUBLISHED',
+          'REJECTED',
+        ]),
+        request: z.string(),
+        createdAt: z.iso.datetime(),
+      }),
+    ),
+    conversationIds: z.array(z.uuid()),
+  })
   .strict();
 export const createDeploymentResponseSchema = z
   .object({

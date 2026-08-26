@@ -37,11 +37,33 @@ export default async function ConversationsPage() {
             <Card key={conversation.id}>
               <CardHeader>
                 <div className="flex justify-between">
-                  <h2 className="font-semibold">{conversation.prospectName}</h2>
+                  <h2 className="font-semibold">
+                    <a
+                      className="hover:text-violet-700"
+                      href={`/conversations/${conversation.id}`}
+                    >
+                      {conversation.prospectName}
+                    </a>
+                  </h2>
                   <Badge>{conversation.status}</Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="grid gap-3 text-sm sm:grid-cols-4">
+                  <p>
+                    <b>Intent :</b> {conversation.intent ?? '—'}
+                  </p>
+                  <p>
+                    <b>Priorité :</b> {conversation.priority}
+                  </p>
+                  <p>
+                    <b>Non lus :</b> {conversation.unreadCount}
+                  </p>
+                  <p>
+                    <b>Contexte :</b>{' '}
+                    {conversation.clientId ? 'Client' : 'Prospect'}
+                  </p>
+                </div>
                 {conversation.drafts.map((draft) => (
                   <div key={draft.id} className="rounded-xl border p-4">
                     <div className="flex justify-between">

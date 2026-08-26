@@ -1,5 +1,39 @@
 # Passation de la conversation Codex
 
+## 26 août 2026 — Pipeline thèmes et contenu Restaurant
+
+- Ajout des contrats validés `BrandProfile`, `ContentProfile`, sources,
+  provenance des assets et `ThemeSelection`.
+- Ajout de trois thèmes Restaurant contrôlés : Editorial, Maison et Studio.
+- La génération sélectionne maintenant le thème d'après les signaux métier et
+  de marque, avec Editorial comme fallback explicite de la catégorie.
+- Les couleurs et typographies sourcées remplacent les valeurs du thème. Les
+  sections sans données vérifiées sont omises au lieu d'être inventées.
+- Le contexte complet est conservé dans chaque nouvelle `WebsiteVersion` et
+  résumé sur `/websites/:id`.
+- Migration ajoutée : `0010_restaurant_theme_catalog.sql`.
+- Les thèmes gratuits externes restent des références tant que les licences du
+  code et des assets ne sont pas auditées. Aucun dépôt externe n'est exécuté.
+- Architecture et suite : `docs/website-theme-pipeline.md`.
+
+### Enrichissement Research et premier thème MIT normalisé
+
+- Overpass produit maintenant un `BrandProfile` réel avec URL de l'objet OSM,
+  timestamp, cuisines, horaires bruts, réseaux sociaux et références d'assets.
+- Les assets externes sont `PENDING_REVIEW` et ne sont jamais rendus tant qu'ils
+  ne sont pas explicitement `VERIFIED`.
+- Ajout de `POST /websites/from-prospect/:prospectId` et du bouton
+  **Generate Website** sur la fiche Prospect.
+- Le workflow réel a été validé avec le prospect OpenStreetMap
+  `Clay's Downtown Restaurant` : job terminé, Website V1, source de marque
+  `OPENSTREETMAP`, aucune image non validée rendue.
+- Chef's Kitchen a été audité au commit
+  `2910c50abefa7a367015697f4cd5b96be95771fb` puis normalisé sous
+  `restaurant-chefs-kitchen-v1`.
+- Le code est MIT, mais les images n'ont pas de licence individuelle documentée
+  dans le dépôt : elles ont été exclues, ainsi que les données fictives et le
+  formulaire externe codé en dur.
+
 ## Demande et contexte
 
 Le projet construit une agence web automatisée, maintenable par un développeur seul. Le cahier des charges original est copié dans `docs/PROJECT_SPECIFICATION.md`.
@@ -57,3 +91,25 @@ Les processus lancés depuis l'ancien workspace C: ne doivent pas être considé
 - Le disque C: n'avait qu'environ 1,19 Go libre ; D: dispose d'environ 222,83 Go.
 
 La copie D: est l’environnement actif. Les Phases 6 et 7 ajoutent le CRM, la conversion client/projet et un workflow de déploiement local traçable avec rollback. Aucun envoi commercial, paiement, domaine public ou fournisseur cloud réel n’est activé.
+
+## Extension Dashboard → Settings — 26 août 2026
+
+L'utilisateur a ensuite fourni les cahiers des charges détaillés des modules Dashboard, Prospects, Companies, Websites, Templates, Clients, Conversations, SEO, Agent Jobs, Analytics et Settings, puis a demandé leur implémentation.
+
+État effectivement implémenté dans `D:\galatic-webapp` :
+
+- layout global unique et menu partagé sur toutes les pages ;
+- dashboard agrégé réel, filtre de période, funnel, KPI, agents, jobs et alertes ;
+- séparation centrale Company / Prospect / Client et backfill des relations existantes ;
+- listes Companies et Prospects paginées côté serveur, filtrées et triées ;
+- détails Company, Prospect, Client, Website, Template, Conversation et Agent Job ;
+- machine à états Prospect partagée par l'API et le dashboard ;
+- statuts Website, Client, Conversation et Job étendus sans supprimer les anciennes données ;
+- tables Templates, Client Requests, Payments (références uniquement), Conversation Messages, Job Logs et Settings ;
+- SEO déterministe et QA visibles par Website ; une version ne peut plus être approuvée sans rapport réussi ;
+- Analytics calculé à partir des données persistées et coûts IA ;
+- Settings non sensibles persistés et validés ; les secrets restent dans l'environnement ;
+- migration `0009_flashy_ultron.sql` inspectée, corrigée, backfillée et appliquée ;
+- endpoints réels testés, sans mocks restaurés.
+
+Les détails de conformité et les limites restantes sont consignés dans `docs/operations-modules.md`. Ne pas présenter ces limites comme déjà livrées.

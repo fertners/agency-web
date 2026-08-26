@@ -15,10 +15,21 @@ export function Navbar({
         </a>
         <nav className="awa-nav-links" aria-label="Navigation principale">
           <a href="#about">À propos</a>
-          <a href="#specialties">La carte</a>
-          <a href="#contact">Contact</a>
+          {config.sections.includes('SPECIALTIES') ? (
+            <a href="#specialties">La carte</a>
+          ) : null}
+          <a
+            href={
+              config.sections.includes('CONTACT') ? '#contact' : '#location'
+            }
+          >
+            {config.sections.includes('CONTACT') ? 'Contact' : 'Adresse'}
+          </a>
         </nav>
-        <a className="awa-button awa-button-small" href="#contact">
+        <a
+          className="awa-button awa-button-small"
+          href={config.sections.includes('CONTACT') ? '#contact' : '#location'}
+        >
           {config.content.primaryCallToAction}
         </a>
       </div>

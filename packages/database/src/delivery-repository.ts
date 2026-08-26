@@ -3,9 +3,12 @@ import { and, desc, eq } from 'drizzle-orm';
 import type { Database } from './client.js';
 import {
   clients,
+  clientRequests,
   companies,
+  conversations,
   deployments,
   projects,
+  payments,
   proposals,
   prospects,
   prospectStatusHistory,
@@ -38,11 +41,16 @@ export class DeliveryRepository {
       if (!source) return undefined;
       const [client] = await tx
         .insert(clients)
-        .values({ prospectId, name: source.company.name })
+        .values({
+          prospectId,
+          companyId: source.company.id,
+          name: source.company.name,
+        })
         .onConflictDoUpdate({
           target: clients.prospectId,
           set: {
             name: source.company.name,
+            companyId: source.company.id,
             status: 'ACTIVE',
             updatedAt: new Date(),
           },
@@ -66,16 +74,16 @@ export class DeliveryRepository {
         })
         .returning();
       if (!project) throw new Error('Failed to persist project');
-      if (source.prospect.status !== 'CONVERTED') {
+      if (!['CONVERTED', 'WON'].includes(source.prospect.status)) {
         await tx.insert(prospectStatusHistory).values({
           prospectId,
           fromStatus: source.prospect.status,
-          toStatus: 'CONVERTED',
+          toStatus: 'WON',
           note: 'Converted from an approved proposal',
         });
         await tx
           .update(prospects)
-          .set({ status: 'CONVERTED', updatedAt: new Date() })
+          .set({ status: 'WON', updatedAt: new Date() })
           .where(eq(prospects.id, prospectId));
       }
       return { client, project };
@@ -93,6 +101,36 @@ export class DeliveryRepository {
       .select()
       .from(projects)
       .orderBy(desc(projects.updatedAt));
+  }
+
+  async getClientDetail(id: string) {
+    const [client] = await this.database
+      .select()
+      .from(clients)
+      .where(eq(clients.id, id));
+    if (!client) return undefined;
+    const [projectRows, paymentRows, requestRows, conversationRows] =
+      await Promise.all([
+        this.database.select().from(projects).where(eq(projects.clientId, id)),
+        this.database.select().from(payments).where(eq(payments.clientId, id)),
+        this.database
+          .select()
+          .from(clientRequests)
+          .where(eq(clientRequests.clientId, id)),
+        client.companyId
+          ? this.database
+              .select({ id: conversations.id })
+              .from(conversations)
+              .where(eq(conversations.companyId, client.companyId))
+          : [],
+      ]);
+    return {
+      client,
+      projects: projectRows,
+      payments: paymentRows,
+      requests: requestRows,
+      conversationIds: conversationRows.map((row) => row.id),
+    };
   }
 
   async attachWebsite(projectId: string, websiteId: string, versionId: string) {

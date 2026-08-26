@@ -17,12 +17,22 @@ import {
 
 export const prospectStatusEnum = pgEnum('prospect_status', [
   'NEW',
+  'DISCOVERED',
+  'ANALYZING',
   'QUALIFIED',
+  'PREVIEW_GENERATED',
+  'REVIEW_REQUIRED',
   'CONTACT_READY',
   'CONTACTED',
   'RESPONDED',
+  'REPLIED',
+  'INTERESTED',
+  'PROPOSAL_SENT',
   'CONVERTED',
+  'WON',
+  'LOST',
   'DISMISSED',
+  'ARCHIVED',
 ]);
 export const companies = pgTable(
   'companies',
@@ -32,6 +42,7 @@ export const companies = pgTable(
     source: varchar('source', { length: 80 }).notNull(),
     externalId: text('external_id'),
     name: text('name').notNull(),
+    description: text('description'),
     category: varchar('category', { length: 40 }).notNull(),
     countryCode: varchar('country_code', { length: 2 }).notNull(),
     city: text('city').notNull(),
@@ -40,6 +51,11 @@ export const companies = pgTable(
     websiteUrl: text('website_url'),
     email: text('email'),
     phone: text('phone'),
+    socialLinks: jsonb('social_links').$type<Record<string, string>>(),
+    openingHours: jsonb('opening_hours').$type<Record<string, unknown>>(),
+    logoUrl: text('logo_url'),
+    imageUrls: jsonb('image_urls').$type<string[]>(),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
     raw: jsonb('raw').$type<CompanyCandidate>().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
@@ -68,6 +84,8 @@ export const prospects = pgTable(
     status: prospectStatusEnum('status').notNull().default('NEW'),
     opportunityScore: integer('opportunity_score'),
     assessment: jsonb('assessment').$type<OpportunityAssessment>(),
+    lastAnalyzedAt: timestamp('last_analyzed_at', { withTimezone: true }),
+    nextAction: text('next_action'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

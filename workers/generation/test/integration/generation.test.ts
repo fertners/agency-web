@@ -91,6 +91,9 @@ describe('restaurant generation workflow', () => {
       const result = await job.waitUntilFinished(events, 15_000);
       const persistedJob = await agentJobs.findById(record.id);
       const versions = await websites.listVersions(created.website.id);
+      const persistedWebsite = await websites.findWebsiteById(
+        created.website.id,
+      );
       const calls = await aiCalls.listForJob(record.id);
 
       expect(result.previewPath).toBe(
@@ -99,6 +102,21 @@ describe('restaurant generation workflow', () => {
       expect(persistedJob).toMatchObject({ status: 'COMPLETED', attempt: 1 });
       expect(versions).toHaveLength(1);
       expect(versions[0]).toMatchObject({ status: 'READY', version: 1 });
+      expect(versions[0]?.config.generation).toMatchObject({
+        theme: {
+          themeKey: 'restaurant-elegant-v1',
+          usedCategoryFallback: true,
+        },
+      });
+      expect(versions[0]?.config.generation?.content.omittedSections).toEqual(
+        expect.arrayContaining([
+          'SPECIALTIES',
+          'GALLERY',
+          'REVIEWS',
+          'OPENING_HOURS',
+        ]),
+      );
+      expect(persistedWebsite?.templateKey).toBe('restaurant-elegant-v1');
       expect(calls).toHaveLength(1);
       expect(calls[0]).toMatchObject({
         provider: 'local',

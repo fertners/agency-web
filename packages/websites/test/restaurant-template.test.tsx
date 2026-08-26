@@ -85,5 +85,25 @@ describe('RestaurantTemplate', () => {
 
     expect(markup).toContain('--awa-primary:#17231B');
     expect(markup).toContain('--awa-accent:#C89348');
+    expect(markup).toContain('--awa-heading-font:Georgia, serif');
+    expect(markup).toContain('--awa-button-radius:999px');
+  });
+
+  it('renders a controlled split hero without upstream placeholder assets', () => {
+    const markup = renderToStaticMarkup(
+      <RestaurantTemplate
+        config={{
+          ...config,
+          design: {
+            ...config.design,
+            heroLayout: 'SPLIT',
+          },
+        }}
+      />,
+    );
+
+    expect(markup).toContain('awa-hero-split');
+    expect(markup).not.toContain('banner-image.webp');
+    expect(markup).not.toContain('signature dishes');
   });
 });

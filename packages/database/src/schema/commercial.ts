@@ -19,9 +19,26 @@ export const proposalStatusEnum = pgEnum('proposal_status', [
   'APPROVED',
   'REJECTED',
 ]);
+export const proposalResponseEnum = pgEnum('proposal_response', [
+  'ACCEPTED',
+  'DECLINED',
+]);
 export const conversationStatusEnum = pgEnum('conversation_status', [
+  'UNREAD',
   'OPEN',
+  'WAITING',
+  'REPLIED',
   'CLOSED',
+]);
+export const conversationIntentEnum = pgEnum('conversation_intent', [
+  'QUESTION',
+  'PRICE',
+  'DESIGN_REQUEST',
+  'SEO_REQUEST',
+  'INTERESTED',
+  'NOT_INTERESTED',
+  'SUPPORT',
+  'OTHER',
 ]);
 export const communicationChannelEnum = pgEnum('communication_channel', [
   'EMAIL',
@@ -84,10 +101,18 @@ export const proposals = pgTable(
     status: proposalStatusEnum('status').notNull().default('NEEDS_REVIEW'),
     title: text('title').notNull(),
     summary: text('summary').notNull(),
+    message: text('message').notNull(),
+    analysisIssues: jsonb('analysis_issues').$type<string[]>().notNull(),
+    previewUrl: text('preview_url').notNull(),
+    publicToken: varchar('public_token', { length: 64 }).notNull(),
     scope: jsonb('scope').$type<string[]>().notNull(),
     priceCents: integer('price_cents').notNull(),
     currency: varchar('currency', { length: 3 }).notNull(),
     timelineDays: integer('timeline_days').notNull(),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    respondedAt: timestamp('responded_at', { withTimezone: true }),
+    response: proposalResponseEnum('response'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -101,6 +126,23 @@ export const proposals = pgTable(
       table.version,
     ),
     index('proposals_status_updated_idx').on(table.status, table.updatedAt),
+    uniqueIndex('proposals_public_token_unique').on(table.publicToken),
+    index('proposals_expiry_idx').on(table.expiresAt, table.response),
+  ],
+);
+export const contactSuppressions = pgTable(
+  'contact_suppressions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    identityHash: varchar('identity_hash', { length: 64 }).notNull(),
+    reason: varchar('reason', { length: 40 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    retainUntil: timestamp('retain_until', { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    uniqueIndex('contact_suppressions_identity_unique').on(table.identityHash),
   ],
 );
 export const conversations = pgTable(
@@ -110,7 +152,14 @@ export const conversations = pgTable(
     prospectId: uuid('prospect_id')
       .notNull()
       .references(() => prospects.id, { onDelete: 'cascade' }),
+    companyId: uuid('company_id'),
+    clientId: uuid('client_id'),
     status: conversationStatusEnum('status').notNull().default('OPEN'),
+    intent: conversationIntentEnum('intent'),
+    priority: integer('priority').notNull().default(0),
+    unreadCount: integer('unread_count').notNull().default(0),
+    summary: text('summary'),
+    recommendedAction: text('recommended_action'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

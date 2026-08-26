@@ -10,7 +10,10 @@ import {
   type GenerationJobPayload,
   type GenerationJobResult,
 } from '@ai-web-agency/shared';
-import { generateRestaurantConfig } from '@ai-web-agency/websites';
+import {
+  generateRestaurantConfig,
+  prepareRestaurantGeneration,
+} from '@ai-web-agency/websites';
 import type { Job } from 'bullmq';
 
 type GenerationRepositories = Readonly<{
@@ -44,10 +47,12 @@ export function createGenerationProcessor(
         business: business.data,
         jobId: job.id,
       });
+      const generation = prepareRestaurantGeneration(business.data);
       const config = generateRestaurantConfig(
         business.data,
         new Date(),
         briefs,
+        generation,
       );
       const version = await repositories.websites.createVersion(
         payload.websiteId,

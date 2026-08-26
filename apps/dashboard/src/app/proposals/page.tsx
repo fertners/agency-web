@@ -45,6 +45,14 @@ export default async function ProposalsPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-slate-600">{proposal.summary}</p>
+                <details className="mt-4 rounded-lg bg-slate-50 p-4">
+                  <summary className="cursor-pointer font-medium">
+                    Message commercial
+                  </summary>
+                  <p className="mt-3 whitespace-pre-line text-sm text-slate-600">
+                    {proposal.message}
+                  </p>
+                </details>
                 <ul className="my-4 list-disc pl-5 text-sm">
                   {proposal.scope.map((item) => (
                     <li key={item}>{item}</li>
@@ -54,6 +62,32 @@ export default async function ProposalsPage() {
                   {(proposal.priceCents / 100).toLocaleString('fr-FR')}{' '}
                   {proposal.currency} · {proposal.timelineDays} jours
                 </p>
+                <div className="mt-4 flex flex-wrap gap-4 text-sm">
+                  <a
+                    href={proposal.previewUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-violet-700 underline"
+                  >
+                    Prévisualiser le site
+                  </a>
+                  {proposal.status === 'APPROVED' && (
+                    <a
+                      href={proposal.publicPath}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-violet-700 underline"
+                    >
+                      Ouvrir la proposition publique
+                    </a>
+                  )}
+                </div>
+                {proposal.expiresAt && (
+                  <p className="mt-2 text-xs text-slate-400">
+                    Expire le{' '}
+                    {new Date(proposal.expiresAt).toLocaleDateString('fr-FR')}
+                  </p>
+                )}
                 {proposal.status === 'NEEDS_REVIEW' && (
                   <div className="mt-4 flex gap-2">
                     <form

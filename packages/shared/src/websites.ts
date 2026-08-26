@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+import {
+  brandProfileSchema,
+  websiteGenerationContextSchema,
+} from './branding.js';
+
 export const WEEKDAYS = [
   'MONDAY',
   'TUESDAY',
@@ -34,7 +39,14 @@ export const RESTAURANT_SECTIONS = [
 export const WEBSITE_STATUSES = [
   'DRAFT',
   'GENERATING',
+  'BUILDING',
+  'REVIEW',
+  'NEEDS_CHANGES',
   'READY',
+  'APPROVED',
+  'DEPLOYING',
+  'LIVE',
+  'FAILED',
   'ARCHIVED',
 ] as const;
 export const WEBSITE_VERSION_STATUSES = [
@@ -57,8 +69,8 @@ export const websiteVersionStatusSchema = z.enum(WEBSITE_VERSION_STATUSES);
 
 export const addressSchema = z
   .object({
-    street: nonEmptyTextSchema,
-    postalCode: nonEmptyTextSchema,
+    street: nonEmptyTextSchema.optional(),
+    postalCode: nonEmptyTextSchema.optional(),
     city: nonEmptyTextSchema,
     countryCode: z
       .string()
@@ -74,10 +86,7 @@ export const restaurantContactSchema = z
     email: z.email().optional(),
     website: z.url().optional(),
   })
-  .strict()
-  .refine((contact) => Object.values(contact).some(Boolean), {
-    message: 'At least one contact method is required',
-  });
+  .strict();
 
 export const openingHoursSchema = z.discriminatedUnion('closed', [
   z.object({ day: weekdaySchema, closed: z.literal(true) }).strict(),
@@ -136,7 +145,7 @@ export const restaurantBusinessDataSchema = z
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
     tagline: nonEmptyTextSchema.optional(),
     description: nonEmptyTextSchema,
-    cuisines: z.array(nonEmptyTextSchema).min(1).max(10),
+    cuisines: z.array(nonEmptyTextSchema).max(10),
     address: addressSchema,
     contact: restaurantContactSchema,
     openingHours: z.array(openingHoursSchema).max(7),
@@ -145,6 +154,7 @@ export const restaurantBusinessDataSchema = z
     heroImage: restaurantImageSchema.optional(),
     gallery: z.array(restaurantImageSchema).max(12).default([]),
     reviews: z.array(restaurantReviewSchema).max(8).default([]),
+    brandProfile: brandProfileSchema.optional(),
   })
   .strict()
   .superRefine((business, context) => {
@@ -177,6 +187,12 @@ export const restaurantDesignBriefSchema = z
     accentColor: hexColorSchema,
     backgroundColor: hexColorSchema,
     textColor: hexColorSchema,
+    headingFont: nonEmptyTextSchema.max(100).default('Georgia, serif'),
+    bodyFont: nonEmptyTextSchema
+      .max(100)
+      .default('Inter, ui-sans-serif, system-ui, sans-serif'),
+    buttonRadius: z.enum(['NONE', 'SOFT', 'PILL']).default('PILL'),
+    heroLayout: z.enum(['OVERLAY', 'SPLIT']).default('OVERLAY'),
     styleKeywords: z.array(nonEmptyTextSchema).min(1).max(6),
   })
   .strict();
@@ -198,6 +214,7 @@ export const restaurantWebsiteConfigSchema = z
       .array(restaurantSectionSchema)
       .min(1)
       .max(RESTAURANT_SECTIONS.length),
+    generation: websiteGenerationContextSchema.optional(),
     generatedAt: z.iso.datetime(),
   })
   .strict()

@@ -1,6 +1,7 @@
 import {
   attachProjectWebsiteRequestSchema,
   clientListResponseSchema,
+  clientDetailSchema,
   clientSchema,
   convertProspectRequestSchema,
   createDeploymentRequestSchema,
@@ -13,6 +14,7 @@ import {
   rollbackDeploymentRequestSchema,
   type AttachProjectWebsiteRequest,
   type Client,
+  type ClientDetail,
   type ClientListResponse,
   type ConvertProspectRequest,
   type CreateDeploymentRequest,
@@ -30,13 +32,17 @@ import { DeploymentQueueService } from '../../infrastructure/queue/deployment-qu
 function toClient(row: {
   id: string;
   prospectId: string;
+  companyId: string | null;
   name: string;
-  status: 'ACTIVE' | 'INACTIVE';
+  status:
+    'ONBOARDING' | 'ACTIVE' | 'PAUSED' | 'CANCELLED' | 'COMPLETED' | 'INACTIVE';
+  convertedAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }): Client {
   return clientSchema.parse({
     ...row,
+    convertedAt: row.convertedAt.toISOString(),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   });
@@ -108,6 +114,32 @@ export class DeliveryService {
   async listClients(): Promise<ClientListResponse> {
     return clientListResponseSchema.parse({
       clients: (await this.database.delivery.listClients()).map(toClient),
+    });
+  }
+  async getClient(id: string): Promise<ClientDetail> {
+    const result = await this.database.delivery.getClientDetail(id);
+    if (!result) throw new NotFoundException('Client not found');
+    return clientDetailSchema.parse({
+      client: toClient(result.client),
+      projects: result.projects.map(toProject),
+      payments: result.payments.map((payment) => ({
+        id: payment.id,
+        projectId: payment.projectId,
+        provider: payment.provider,
+        status: payment.status,
+        amountCents: payment.amountCents,
+        currency: payment.currency,
+        createdAt: payment.createdAt.toISOString(),
+      })),
+      requests: result.requests.map((request) => ({
+        id: request.id,
+        projectId: request.projectId,
+        websiteId: request.websiteId,
+        status: request.status,
+        request: request.request,
+        createdAt: request.createdAt.toISOString(),
+      })),
+      conversationIds: result.conversationIds,
     });
   }
   async listProjects(): Promise<ProjectListResponse> {

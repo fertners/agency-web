@@ -5,6 +5,7 @@ import {
   rollbackDeploymentRequestSchema,
   type AttachProjectWebsiteRequest,
   type Client,
+  type ClientDetail,
   type ClientListResponse,
   type ConvertProspectRequest,
   type CreateDeploymentRequest,
@@ -43,6 +44,11 @@ export class DeliveryController {
   }
   @Get('clients') clients(): Promise<ClientListResponse> {
     return this.service.listClients();
+  }
+  @Get('clients/:id') client(
+    @Param('id', new ZodValidationPipe(uuidSchema)) id: string,
+  ): Promise<ClientDetail> {
+    return this.service.getClient(id);
   }
   @Get('projects') projects(): Promise<ProjectListResponse> {
     return this.service.listProjects();

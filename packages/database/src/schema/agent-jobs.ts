@@ -19,6 +19,7 @@ export const DATABASE_AGENT_JOB_STATUSES = [
   'RUNNING',
   'COMPLETED',
   'FAILED',
+  'CANCELLED',
   'NEEDS_REVIEW',
 ] as const satisfies readonly AgentJobStatus[];
 
@@ -32,6 +33,11 @@ export const agentJobs = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     type: varchar('type', { length: 100 }).notNull(),
+    agent: varchar('agent', { length: 80 }),
+    entityType: varchar('entity_type', { length: 80 }),
+    entityId: uuid('entity_id'),
+    correlationId: uuid('correlation_id'),
+    priority: integer('priority').notNull().default(0),
     status: agentJobStatusEnum('status').notNull().default('PENDING'),
     queueName: varchar('queue_name', { length: 100 }),
     queueJobId: varchar('queue_job_id', { length: 255 }),
@@ -39,6 +45,7 @@ export const agentJobs = pgTable(
     output: jsonb('output').$type<Record<string, unknown>>(),
     error: text('error'),
     attempt: integer('attempt').notNull().default(0),
+    maxAttempts: integer('max_attempts').notNull().default(3),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

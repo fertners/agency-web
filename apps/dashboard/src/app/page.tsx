@@ -1,288 +1,183 @@
-import type { AgentJobResponse, ServiceHealth } from '@ai-web-agency/shared';
-import {
-  Activity,
-  Bot,
-  Building2,
-  ChartNoAxesCombined,
-  CircleGauge,
-  FileCode2,
-  FileText,
-  Globe2,
-  MessageSquare,
-  Plus,
-  Search,
-  Settings,
-  Rocket,
-  Users,
-} from 'lucide-react';
+import { AlertTriangle, Bot, BriefcaseBusiness } from 'lucide-react';
 
-import { createDiagnosticAction } from '@/app/actions';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { getHealth, getJobs } from '@/lib/api';
+import { getDashboardOverview } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
-
-const navigation = [
-  ['Dashboard', CircleGauge],
-  ['Prospects', Search],
-  ['Companies', Building2],
-  ['Websites', Globe2],
-  ['Proposals', FileText],
-  ['Templates', FileCode2],
-  ['Clients', Users],
-  ['Deployments', Rocket],
-  ['Conversations', MessageSquare],
-  ['SEO', Activity],
-  ['Agent Jobs', Bot],
-  ['Analytics', ChartNoAxesCombined],
-  ['Settings', Settings],
+const periods = [
+  ['today', 'Aujourd’hui'],
+  ['7d', '7 jours'],
+  ['30d', '30 jours'],
+  ['90d', '90 jours'],
 ] as const;
+const tone = (status: string) =>
+  status === 'RUNNING'
+    ? 'bg-blue-50 text-blue-700'
+    : status === 'DEGRADED' || status === 'FAILED'
+      ? 'bg-rose-50 text-rose-700'
+      : 'bg-emerald-50 text-emerald-700';
 
-function statusTone(status: string): string {
-  if (status === 'UP' || status === 'COMPLETED')
-    return 'bg-emerald-50 text-emerald-700';
-  if (status === 'FAILED' || status === 'DOWN')
-    return 'bg-rose-50 text-rose-700';
-  if (status === 'RUNNING') return 'bg-blue-50 text-blue-700';
-  return 'bg-amber-50 text-amber-700';
-}
-
-function ServiceRow({
-  name,
-  health,
+export default async function DashboardPage({
+  searchParams,
 }: {
-  name: string;
-  health: ServiceHealth | undefined;
+  searchParams: Promise<{ period?: string }>;
 }) {
+  const requested = (await searchParams).period ?? '30d';
+  const period = periods.some(([value]) => value === requested)
+    ? requested
+    : '30d';
+  const overview = await getDashboardOverview(period).catch(() => null);
   return (
-    <div className="flex items-center justify-between border-b border-slate-100 py-3 last:border-0">
-      <div className="flex items-center gap-3">
-        <span
-          className={`h-2.5 w-2.5 rounded-full ${health?.status === 'UP' ? 'bg-emerald-500' : 'bg-rose-500'}`}
-        />
-        <span className="font-medium text-slate-700">{name}</span>
-      </div>
-      <span className="text-sm text-slate-500">
-        {health?.latencyMs === undefined
-          ? 'Indisponible'
-          : `${Math.round(health.latencyMs)} ms`}
-      </span>
-    </div>
-  );
-}
-
-export default async function DashboardPage() {
-  const [healthResult, jobsResult] = await Promise.allSettled([
-    getHealth(),
-    getJobs(),
-  ]);
-  const health =
-    healthResult.status === 'fulfilled' ? healthResult.value : undefined;
-  const jobs = jobsResult.status === 'fulfilled' ? jobsResult.value.jobs : [];
-  const completed = jobs.filter((job) => job.status === 'COMPLETED').length;
-  const failed = jobs.filter((job) => job.status === 'FAILED').length;
-
-  return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[250px_1fr]">
-      <aside className="border-b border-slate-200 bg-slate-950 px-4 py-5 text-slate-300 lg:min-h-screen lg:border-b-0 lg:border-r">
-        <div className="mb-7 flex items-center gap-3 px-2">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-violet-500 text-white">
-            <Bot size={21} />
-          </div>
-          <div>
-            <p className="font-semibold text-white">AI Web Agency</p>
-            <p className="text-xs text-slate-500">Operations console</p>
-          </div>
+    <main className="min-w-0 p-5 sm:p-8">
+      <header className="mb-7 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-violet-600">PILOTAGE</p>
+          <h1 className="mt-1 text-3xl font-bold">Dashboard</h1>
+          <p className="mt-2 text-slate-500">
+            Funnel, agents et alertes issus de l’API.
+          </p>
         </div>
-        <nav className="flex gap-1 overflow-x-auto lg:block lg:space-y-1">
-          {navigation.map(([label, Icon], index) => (
+        <nav className="flex rounded-xl border bg-white p-1 text-sm">
+          {periods.map(([value, label]) => (
             <a
-              key={label}
-              href={
-                label === 'Websites'
-                  ? '/websites'
-                  : label === 'Prospects'
-                    ? '/prospects'
-                    : label === 'Proposals'
-                      ? '/proposals'
-                      : label === 'Conversations'
-                        ? '/conversations'
-                        : label === 'Clients'
-                          ? '/clients'
-                          : label === 'Deployments'
-                            ? '/deployments'
-                            : '#'
-              }
-              className={`flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium ${index === 0 ? 'bg-violet-500/15 text-violet-300' : 'hover:bg-white/5 hover:text-white'}`}
+              className={`rounded-lg px-3 py-2 ${period === value ? 'bg-slate-950 text-white' : 'text-slate-600'}`}
+              href={`/?period=${value}`}
+              key={value}
             >
-              <Icon size={17} />
               {label}
             </a>
           ))}
         </nav>
-      </aside>
-
-      <main className="min-w-0 p-5 sm:p-8">
-        <header className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
-            <p className="mb-1 text-sm font-semibold text-violet-600">
-              PHASE 1 · FOUNDATION
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-950">
-              Vue d’ensemble
-            </h1>
-            <p className="mt-2 text-slate-500">
-              Surveillez l’infrastructure et le pipeline de jobs.
-            </p>
-          </div>
-          <form action={createDiagnosticAction}>
-            <Button type="submit">
-              <Plus className="mr-2" size={17} />
-              Lancer un diagnostic
-            </Button>
-          </form>
-        </header>
-
-        <section className="mb-6 grid gap-4 sm:grid-cols-3">
-          <Card>
-            <CardContent className="pt-5">
-              <p className="text-sm font-medium text-slate-500">
-                État plateforme
-              </p>
-              <div className="mt-3 flex items-center justify-between">
-                <p className="text-2xl font-bold">
-                  {health?.status ?? 'Hors ligne'}
-                </p>
-                <Badge className={statusTone(health?.status ?? 'DOWN')}>
-                  {health ? 'Connecté' : 'API inaccessible'}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-5">
-              <p className="text-sm font-medium text-slate-500">
-                Jobs terminés
-              </p>
-              <p className="mt-3 text-3xl font-bold">{completed}</p>
-              <p className="mt-1 text-xs text-slate-400">
-                sur les 20 plus récents
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-5">
-              <p className="text-sm font-medium text-slate-500">Échecs</p>
-              <p className="mt-3 text-3xl font-bold">{failed}</p>
-              <p className="mt-1 text-xs text-slate-400">
-                nécessitent une vérification
-              </p>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section className="grid gap-6 xl:grid-cols-[1fr_340px]">
-          <Card className="overflow-hidden">
-            <CardHeader>
-              <div>
-                <h2 className="font-semibold text-slate-950">Jobs récents</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Dernières opérations persistées
-                </p>
-              </div>
-              <Badge className="bg-slate-100 text-slate-600">
-                {jobs.length} jobs
-              </Badge>
-            </CardHeader>
-            <CardContent className="overflow-x-auto px-0 pb-0">
-              <table className="w-full min-w-[640px] text-left text-sm">
-                <thead className="border-y border-slate-100 bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
-                  <tr>
-                    <th className="px-5 py-3">Job</th>
-                    <th className="px-5 py-3">Statut</th>
-                    <th className="px-5 py-3">Tentative</th>
-                    <th className="px-5 py-3">Créé</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {jobs.length === 0 ? (
+      </header>
+      {!overview ? (
+        <Card>
+          <CardContent className="py-12 text-center text-slate-500">
+            API ou base indisponible. Aucun chiffre fictif n’est affiché.
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {Object.entries(overview.kpis).map(([key, metric]) => (
+              <Card key={key}>
+                <CardContent className="pt-5">
+                  <p className="text-sm text-slate-500">{metric.label}</p>
+                  <p className="mt-2 text-3xl font-bold">{metric.value}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </section>
+          <section className="mb-6 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+            <Card>
+              <CardHeader>
+                <div>
+                  <h2 className="font-semibold">Funnel commercial</h2>
+                  <p className="text-sm text-slate-500">Conversion par étape</p>
+                </div>
+                <BriefcaseBusiness className="text-violet-500" size={20} />
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {overview.funnel.map((step) => (
+                  <div
+                    className="grid grid-cols-[1fr_auto_auto] gap-4 rounded-xl bg-slate-50 px-4 py-3"
+                    key={step.key}
+                  >
+                    <span>{step.label}</span>
+                    <strong>{step.count}</strong>
+                    <span className="w-16 text-right text-sm text-slate-500">
+                      {step.conversion === null ? '—' : `${step.conversion}%`}
+                    </span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <div>
+                  <h2 className="font-semibold">Agents</h2>
+                  <p className="text-sm text-slate-500">État opérationnel</p>
+                </div>
+                <Bot className="text-violet-500" size={20} />
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {overview.agents.map((agent) => (
+                  <div
+                    className="flex items-center justify-between border-b pb-3"
+                    key={agent.agent}
+                  >
+                    <div>
+                      <p className="font-medium">{agent.agent}</p>
+                      <p className="text-xs text-slate-500">
+                        {agent.pending} attente · {agent.running} actif
+                      </p>
+                    </div>
+                    <Badge className={tone(agent.status)}>{agent.status}</Badge>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </section>
+          <section className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+            <Card>
+              <CardHeader>
+                <h2 className="font-semibold">Jobs récents</h2>
+                <a
+                  className="text-sm font-semibold text-violet-600"
+                  href="/jobs"
+                >
+                  Tout voir →
+                </a>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <table className="w-full min-w-[600px] text-left text-sm">
+                  <thead className="border-b text-slate-500">
                     <tr>
-                      <td
-                        colSpan={4}
-                        className="px-5 py-12 text-center text-slate-400"
-                      >
-                        Aucun job pour le moment.
-                      </td>
+                      <th className="pb-3">Agent</th>
+                      <th className="pb-3">Type</th>
+                      <th className="pb-3">Statut</th>
+                      <th className="pb-3">Coût</th>
                     </tr>
-                  ) : (
-                    jobs.map((job: AgentJobResponse) => (
-                      <tr
-                        key={job.jobId}
-                        className="border-b border-slate-100 last:border-0"
-                      >
-                        <td className="px-5 py-4">
-                          <p className="font-medium text-slate-800">
-                            {job.type}
-                          </p>
-                          <p className="mt-1 font-mono text-xs text-slate-400">
-                            {job.jobId.slice(0, 8)}…
-                          </p>
-                        </td>
-                        <td className="px-5 py-4">
-                          <Badge className={statusTone(job.status)}>
-                            {job.status}
-                          </Badge>
-                        </td>
-                        <td className="px-5 py-4 text-slate-500">
-                          {job.attempt} / 3
-                        </td>
-                        <td className="px-5 py-4 text-slate-500">
-                          {new Intl.DateTimeFormat('fr-FR', {
-                            dateStyle: 'short',
-                            timeStyle: 'short',
-                          }).format(new Date(job.createdAt))}
-                        </td>
+                  </thead>
+                  <tbody>
+                    {overview.recentJobs.map((job) => (
+                      <tr className="border-b" key={job.id}>
+                        <td className="py-3">{job.agent}</td>
+                        <td>{job.type}</td>
+                        <td>{job.status}</td>
+                        <td>€{(job.costMicros / 1_000_000).toFixed(4)}</td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <div>
-                <h2 className="font-semibold text-slate-950">Services</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  État en temps réel
-                </p>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ServiceRow name="API NestJS" health={health?.services.api} />
-              <ServiceRow
-                name="PostgreSQL"
-                health={health?.services.postgres}
-              />
-              <ServiceRow name="Redis" health={health?.services.redis} />
-              <div className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
-                <p className="font-medium text-slate-700">
-                  Dernière vérification
-                </p>
-                <p className="mt-1">
-                  {health
-                    ? new Intl.DateTimeFormat('fr-FR', {
-                        timeStyle: 'medium',
-                      }).format(new Date(health.timestamp))
-                    : 'Connexion impossible'}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-      </main>
-    </div>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <h2 className="font-semibold">Alertes</h2>
+                <AlertTriangle className="text-amber-500" size={20} />
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {overview.alerts.length === 0 ? (
+                  <p className="text-sm text-slate-500">
+                    Aucune alerte active.
+                  </p>
+                ) : (
+                  overview.alerts.map((alert) => (
+                    <a
+                      className="block rounded-xl bg-amber-50 p-3 text-sm text-amber-900"
+                      href={alert.href}
+                      key={`${alert.href}-${alert.message}`}
+                    >
+                      {alert.message}
+                    </a>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </section>
+        </>
+      )}
+    </main>
   );
 }

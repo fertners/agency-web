@@ -13,6 +13,7 @@ import {
   createProposal,
   convertProspect,
   updateProspectStatus,
+  generateWebsiteFromProspect,
 } from '@/lib/api';
 
 export async function updateStatusAction(id: string, formData: FormData) {
@@ -65,4 +66,10 @@ export async function convertProspectAction(id: string, proposalId: string) {
   await convertProspect(id, { proposalId });
   revalidatePath(`/prospects/${id}`);
   revalidatePath('/clients');
+}
+
+export async function generateWebsiteAction(id: string) {
+  await generateWebsiteFromProspect(id);
+  revalidatePath(`/prospects/${id}`);
+  revalidatePath('/websites');
 }

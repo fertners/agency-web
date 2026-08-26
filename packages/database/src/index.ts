@@ -12,6 +12,10 @@ export { ProspectRepository } from './prospect-repository.js';
 export { CommercialRepository } from './commercial-repository.js';
 export { DeliveryRepository } from './delivery-repository.js';
 export {
+  OperationsRepository,
+  agentFromJobType,
+} from './operations-repository.js';
+export {
   WebsiteRepository,
   type CreatedRestaurantWebsite,
   type WebsiteListItem,
@@ -36,6 +40,7 @@ export {
   type CompanyRow,
   type ProspectRow,
   communicationDrafts,
+  contactSuppressions,
   conversations,
   proposals,
   prospectNotes,
@@ -64,4 +69,10 @@ export {
   type NewWebsiteVersion,
   type Website,
   type WebsiteVersion,
+  agentJobLogs,
+  appSettings,
+  clientRequests,
+  conversationMessages,
+  payments,
+  templates,
 } from './schema/index.js';

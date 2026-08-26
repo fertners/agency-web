@@ -5,6 +5,7 @@ export const AGENT_JOB_STATUSES = [
   'RUNNING',
   'COMPLETED',
   'FAILED',
+  'CANCELLED',
   'NEEDS_REVIEW',
 ] as const;
 

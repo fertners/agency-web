@@ -12,6 +12,7 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  text,
   timestamp,
   uniqueIndex,
   uuid,
@@ -19,11 +20,19 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { agentJobs } from './agent-jobs.js';
+import { companies } from './prospects.js';
 
 export const DATABASE_WEBSITE_STATUSES = [
   'DRAFT',
   'GENERATING',
+  'BUILDING',
+  'REVIEW',
+  'NEEDS_CHANGES',
   'READY',
+  'APPROVED',
+  'DEPLOYING',
+  'LIVE',
+  'FAILED',
   'ARCHIVED',
 ] as const satisfies readonly WebsiteStatus[];
 export const DATABASE_WEBSITE_VERSION_STATUSES = [
@@ -71,10 +80,15 @@ export const websites = pgTable(
     businessId: uuid('business_id')
       .notNull()
       .references(() => businesses.id, { onDelete: 'cascade' }),
+    companyId: uuid('company_id').references(() => companies.id, {
+      onDelete: 'set null',
+    }),
     templateKey: varchar('template_key', { length: 100 })
       .notNull()
       .default('restaurant-v1'),
     status: websiteStatusEnum('status').notNull().default('DRAFT'),
+    previewUrl: text('preview_url'),
+    productionUrl: text('production_url'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

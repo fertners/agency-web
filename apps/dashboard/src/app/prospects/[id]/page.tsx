@@ -1,4 +1,4 @@
-import { PROSPECT_STATUSES } from '@ai-web-agency/shared';
+import { PROSPECT_TRANSITIONS } from '@ai-web-agency/shared';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import {
   createProposalAction,
   convertProspectAction,
   updateStatusAction,
+  generateWebsiteAction,
 } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -23,6 +24,10 @@ export default async function ProspectDetailPage({
   const result = await getProspect(id).catch(() => null);
   if (!result) notFound();
   const { prospect, history, notes, proposals } = result;
+  const availableStatuses = [
+    prospect.status,
+    ...PROSPECT_TRANSITIONS[prospect.status],
+  ];
   return (
     <main className="min-h-screen bg-slate-50 p-5 sm:p-8">
       <div className="mx-auto max-w-6xl space-y-6">
@@ -34,6 +39,81 @@ export default async function ProspectDetailPage({
           <p className="text-slate-500">
             {prospect.city}, {prospect.countryCode} · {prospect.source}
           </p>
+        </div>
+        <Card>
+          <CardHeader>
+            <h2 className="font-semibold">Website Preview</h2>
+            <p className="text-sm text-slate-500">
+              Crée une version depuis les données Research vérifiées. Les assets
+              en attente de licence restent exclus.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form action={generateWebsiteAction.bind(null, id)}>
+              <Button type="submit">Generate Website</Button>
+            </form>
+          </CardContent>
+        </Card>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <h2 className="font-semibold">Identité</h2>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <p>
+                <b>Catégorie :</b> {prospect.category}
+              </p>
+              <p>
+                <b>Adresse :</b> {prospect.address ?? '—'}
+              </p>
+              <p>
+                <b>Téléphone :</b> {prospect.phone ?? '—'}
+              </p>
+              <p>
+                <b>Email professionnel :</b> {prospect.email ?? '—'}
+              </p>
+              <p>
+                <b>Website :</b> {prospect.websiteUrl ?? 'Absent'}
+              </p>
+              <p>
+                <b>Prochaine action :</b> {prospect.nextAction ?? '—'}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <h2 className="font-semibold">Opportunity</h2>
+              <Badge>{prospect.opportunityScore ?? '—'} / 100</Badge>
+            </CardHeader>
+            <CardContent>
+              {prospect.assessment ? (
+                <div className="space-y-2 text-sm">
+                  <p>
+                    Website quality :{' '}
+                    {prospect.assessment.components.websiteQuality}/100
+                  </p>
+                  <p>Mobile : {prospect.assessment.components.mobile}/100</p>
+                  <p>SEO : {prospect.assessment.components.seo}/100</p>
+                  <p>
+                    Missing features :{' '}
+                    {prospect.assessment.components.missingFeatures}/100
+                  </p>
+                  <p className="pt-2 text-slate-600">
+                    {prospect.assessment.summary}
+                  </p>
+                  <ul className="list-disc pl-5 text-slate-500">
+                    {prospect.assessment.evidence.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500">
+                  Aucune analyse persistée.
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
@@ -50,7 +130,7 @@ export default async function ProspectDetailPage({
                   defaultValue={prospect.status}
                   className="w-full rounded-lg border p-2"
                 >
-                  {PROSPECT_STATUSES.map((status) => (
+                  {availableStatuses.map((status) => (
                     <option key={status}>{status}</option>
                   ))}
                 </select>
@@ -154,12 +234,20 @@ export default async function ProspectDetailPage({
                   <p className="mt-2 text-sm text-slate-600">
                     {proposal.summary}
                   </p>
+                  <details className="mt-3 text-sm">
+                    <summary className="cursor-pointer font-medium">
+                      Voir le message commercial
+                    </summary>
+                    <p className="mt-2 whitespace-pre-line text-slate-600">
+                      {proposal.message}
+                    </p>
+                  </details>
                   <p className="mt-2 font-medium">
                     {(proposal.priceCents / 100).toLocaleString('fr-FR')}{' '}
                     {proposal.currency} · {proposal.timelineDays} jours
                   </p>
                   {proposal.status === 'APPROVED' &&
-                    prospect.status !== 'CONVERTED' && (
+                    !['CONVERTED', 'WON'].includes(prospect.status) && (
                       <form
                         className="mt-3"
                         action={convertProspectAction.bind(

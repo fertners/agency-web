@@ -19,8 +19,11 @@ import {
   type WebsiteListResponse,
   type WebsiteVersionListResponse,
   type WebsiteVersionResponse,
+  companyCandidateSchema,
+  restaurantBusinessDataSchema,
 } from '@ai-web-agency/shared';
 import {
+  BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
@@ -231,9 +234,68 @@ export class WebsitesService {
   ): Promise<CreateRestaurantWebsiteResponse> {
     const created =
       await this.database.websites.createRestaurantWebsite(request);
-    const payload = generationJobPayloadSchema.parse({
-      websiteId: created.website.id,
+    return this.enqueueGeneration(created.website.id);
+  }
+
+  async generateFromProspect(
+    prospectId: string,
+  ): Promise<CreateRestaurantWebsiteResponse> {
+    const result = await this.database.commercial.findProspect(prospectId);
+    if (result === undefined) throw new NotFoundException('Prospect not found');
+    const { company } = result;
+    const candidate = companyCandidateSchema.parse(company.raw);
+    const verifiedAssets = candidate.brandProfile?.assets.filter(
+      ({ usageStatus }) => usageStatus === 'VERIFIED',
+    );
+    const hero = verifiedAssets?.find(({ type }) => type === 'HERO');
+    const gallery = verifiedAssets?.filter(({ type }) => type === 'GALLERY');
+    const baseSlug = company.name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase('fr-FR')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 80);
+    const business = restaurantBusinessDataSchema.parse({
+      kind: 'RESTAURANT',
+      name: company.name,
+      slug: `${baseSlug || 'restaurant'}-${company.id.slice(0, 8)}`,
+      description:
+        company.description ??
+        `${company.name} est référencé comme restaurant à ${company.city}.`,
+      cuisines: candidate.cuisines,
+      address: {
+        street: company.street ?? undefined,
+        postalCode: company.postalCode ?? undefined,
+        city: company.city,
+        countryCode: company.countryCode,
+      },
+      contact: {
+        phone: company.phone ?? undefined,
+        email: company.email ?? undefined,
+        website: company.websiteUrl ?? undefined,
+      },
+      openingHours: [],
+      services: [],
+      menuHighlights: [],
+      heroImage:
+        hero === undefined ? undefined : { url: hero.url, alt: hero.alt },
+      gallery: gallery?.map(({ url, alt }) => ({ url, alt })) ?? [],
+      reviews: [],
+      brandProfile: candidate.brandProfile,
     });
+    const created =
+      await this.database.websites.createRestaurantWebsiteForCompany(
+        company.id,
+        business,
+      );
+    return this.enqueueGeneration(created.website.id);
+  }
+
+  private async enqueueGeneration(
+    websiteId: string,
+  ): Promise<CreateRestaurantWebsiteResponse> {
+    const payload = generationJobPayloadSchema.parse({ websiteId });
     const job = await this.database.agentJobs.createTyped(
       'website.generate.restaurant',
       payload,
@@ -259,7 +321,7 @@ export class WebsitesService {
     }
 
     return createRestaurantWebsiteResponseSchema.parse({
-      websiteId: created.website.id,
+      websiteId,
       jobId: job.id,
       status: 'PENDING',
     });
@@ -316,6 +378,24 @@ export class WebsitesService {
     versionId: string,
     status: 'APPROVED' | 'REJECTED',
   ): Promise<WebsiteVersionResponse> {
+    const existing = await this.database.websites.findVersion(
+      websiteId,
+      versionId,
+    );
+    if (existing === undefined)
+      throw new NotFoundException('Website version not found');
+    if (status === 'APPROVED') {
+      const reports =
+        await this.database.qualityReports.listForVersion(versionId);
+      const latestCompleted = reports.find(
+        (report) => report.status === 'COMPLETED' && report.report !== null,
+      );
+      if (latestCompleted?.report?.status !== 'PASSED') {
+        throw new BadRequestException(
+          'A passing SEO and QA report is required before approval',
+        );
+      }
+    }
     try {
       const version = await this.database.websites.setVersionReviewStatus(
         websiteId,
@@ -323,7 +403,8 @@ export class WebsitesService {
         status,
       );
       return this.toVersionResponse(version);
-    } catch {
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
       throw new NotFoundException('Website version not found');
     }
   }

@@ -5,14 +5,16 @@ export function Section({
   title,
   children,
   className = '',
+  id,
 }: Readonly<{
   eyebrow?: string;
   title: string;
   children: ReactNode;
   className?: string;
+  id?: string;
 }>) {
   return (
-    <section className={`awa-section ${className}`}>
+    <section id={id} className={`awa-section ${className}`}>
       <div className="awa-container">
         {eyebrow === undefined ? null : (
           <p className="awa-eyebrow">{eyebrow}</p>

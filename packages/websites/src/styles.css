@@ -3,10 +3,13 @@
   --awa-accent: #c58b46;
   --awa-background: #fbf8f1;
   --awa-text: #172019;
+  --awa-heading-font: Georgia, serif;
+  --awa-body-font: Inter, ui-sans-serif, system-ui, sans-serif;
+  --awa-button-radius: 999px;
   margin: 0;
   background: var(--awa-background);
   color: var(--awa-text);
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--awa-body-font);
   line-height: 1.6;
 }
 .awa-site *,
@@ -34,7 +37,7 @@
 }
 .awa-brand {
   color: inherit;
-  font-family: Georgia, serif;
+  font-family: var(--awa-heading-font);
   font-size: 1.3rem;
   font-weight: 700;
   text-decoration: none;
@@ -52,7 +55,7 @@
   display: inline-flex;
   justify-content: center;
   padding: 0.85rem 1.3rem;
-  border-radius: 999px;
+  border-radius: var(--awa-button-radius);
   background: var(--awa-accent);
   color: #151515;
   font-weight: 750;
@@ -99,12 +102,33 @@
   z-index: 2;
   padding-block: 11rem 6rem;
 }
+.awa-hero-split .awa-hero {
+  color: var(--awa-text);
+  background: var(--awa-background);
+}
+.awa-hero-split .awa-navbar {
+  color: var(--awa-text);
+  border-bottom-color: color-mix(in srgb, var(--awa-text) 15%, transparent);
+}
+.awa-hero-split .awa-hero-overlay {
+  display: none;
+}
+.awa-hero-split .awa-hero-image {
+  inset: 8rem 4vw 4rem auto;
+  width: min(46vw, 650px);
+  height: calc(100% - 12rem);
+  border-radius: 2rem;
+}
+.awa-hero-split .awa-hero-content {
+  padding-right: 52%;
+}
+.awa-hero-split .awa-hero-copy {
+  color: color-mix(in srgb, var(--awa-text) 70%, transparent);
+}
 .awa-hero h1 {
   max-width: 800px;
   margin: 0.4rem 0 1rem;
-  font:
-    700 clamp(3rem, 8vw, 6.8rem)/0.95 Georgia,
-    serif;
+  font: 700 clamp(3rem, 8vw, 6.8rem)/0.95 var(--awa-heading-font);
   letter-spacing: -0.055em;
 }
 .awa-hero-copy {
@@ -133,17 +157,13 @@
 .awa-section-title {
   max-width: 760px;
   margin: 0 0 2.5rem;
-  font:
-    700 clamp(2.3rem, 5vw, 4.7rem)/1 Georgia,
-    serif;
+  font: 700 clamp(2.3rem, 5vw, 4.7rem)/1 var(--awa-heading-font);
   letter-spacing: -0.035em;
 }
 .awa-lead {
   max-width: 780px;
   margin: 0;
-  font:
-    400 clamp(1.25rem, 2.5vw, 2rem)/1.5 Georgia,
-    serif;
+  font: 400 clamp(1.25rem, 2.5vw, 2rem)/1.5 var(--awa-heading-font);
 }
 .awa-card-grid,
 .awa-review-grid {
@@ -166,9 +186,7 @@
 }
 .awa-menu-card h3 {
   margin: 0;
-  font:
-    700 1.25rem Georgia,
-    serif;
+  font: 700 1.25rem var(--awa-heading-font);
 }
 .awa-menu-card p {
   margin: 0.4rem 0 0;
@@ -204,9 +222,7 @@
 }
 .awa-review-grid blockquote {
   margin: 0 0 1rem;
-  font:
-    400 1.25rem/1.5 Georgia,
-    serif;
+  font: 400 1.25rem/1.5 var(--awa-heading-font);
 }
 .awa-review-grid figcaption {
   color: var(--awa-accent);
@@ -245,9 +261,7 @@
 }
 .awa-cta h2 {
   margin: 0 0 1.5rem;
-  font:
-    700 clamp(2rem, 5vw, 4rem)/1 Georgia,
-    serif;
+  font: 700 clamp(2rem, 5vw, 4rem)/1 var(--awa-heading-font);
 }
 .awa-cta .awa-button {
   background: var(--awa-primary);
@@ -264,6 +278,15 @@
   gap: 1rem;
 }
 @media (max-width: 720px) {
+  .awa-hero-split .awa-hero-image {
+    inset: auto 1rem 2rem;
+    width: calc(100% - 2rem);
+    height: 38%;
+  }
+  .awa-hero-split .awa-hero-content {
+    padding-right: 0;
+    padding-bottom: 48vh;
+  }
   .awa-nav-links {
     display: none;
   }

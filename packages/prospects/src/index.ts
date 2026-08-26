@@ -38,6 +38,16 @@ function optionalEmail(value: string | undefined): string | undefined {
     : undefined;
 }
 
+function splitValues(value: string | undefined): string[] {
+  return (
+    value
+      ?.split(';')
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .slice(0, 20) ?? []
+  );
+}
+
 export class OverpassBusinessSearchProvider implements BusinessSearchProvider {
   readonly name = 'openstreetmap-overpass';
   constructor(
@@ -80,11 +90,51 @@ export class OverpassBusinessSearchProvider implements BusinessSearchProvider {
         const tags = element.tags;
         if (!tags?.name || element.id === undefined || !element.type)
           return undefined;
+        const name = tags.name;
         const websiteUrl = optionalUrl(tags['contact:website'] ?? tags.website);
+        const logoUrl = optionalUrl(tags.logo);
+        const imageUrls = [optionalUrl(tags.image)].filter(
+          (value): value is string => value !== undefined,
+        );
+        const socialLinks = Object.fromEntries(
+          [
+            ['facebook', optionalUrl(tags['contact:facebook'])],
+            ['instagram', optionalUrl(tags['contact:instagram'])],
+          ].filter(
+            (entry): entry is [string, string] => entry[1] !== undefined,
+          ),
+        );
+        const sourceId = `osm-${element.type}-${element.id}`;
+        const sourceUrl = `https://www.openstreetmap.org/${element.type}/${element.id}`;
+        const brandAssets = [
+          ...(logoUrl === undefined
+            ? []
+            : [{ type: 'LOGO' as const, url: logoUrl, alt: name }]),
+          ...imageUrls.map((url) => ({
+            type: 'GALLERY' as const,
+            url,
+            alt: name,
+          })),
+        ].map((asset) => ({
+          ...asset,
+          sourceId,
+          sourceUrl,
+          usageStatus: 'PENDING_REVIEW' as const,
+        }));
+        const claims = [
+          'identity',
+          'category',
+          'location',
+          ...(websiteUrl ? ['website'] : []),
+          ...(tags.opening_hours ? ['opening-hours-raw'] : []),
+          ...(tags.cuisine ? ['cuisines'] : []),
+          ...(brandAssets.length > 0 ? ['brand-assets-require-review'] : []),
+        ];
         return {
           source: this.name,
           externalId: `${element.type}/${element.id}`,
-          name: tags.name,
+          name,
+          description: tags.description,
           category: request.category,
           countryCode: request.countryCode,
           city: tags['addr:city'] ?? request.city,
@@ -93,6 +143,29 @@ export class OverpassBusinessSearchProvider implements BusinessSearchProvider {
           websiteUrl,
           email: optionalEmail(tags['contact:email'] ?? tags.email),
           phone: tags['contact:phone'] ?? tags.phone,
+          cuisines: splitValues(tags.cuisine),
+          openingHoursRaw: tags.opening_hours,
+          socialLinks:
+            Object.keys(socialLinks).length === 0 ? undefined : socialLinks,
+          logoUrl,
+          imageUrls,
+          brandProfile: {
+            businessName: name,
+            category: 'RESTAURANT',
+            colors: [],
+            styleKeywords: [],
+            assets: brandAssets,
+            confidence: 0.55,
+            sources: [
+              {
+                id: sourceId,
+                type: 'OPENSTREETMAP',
+                url: sourceUrl,
+                capturedAt: new Date().toISOString(),
+                claims,
+              },
+            ],
+          },
           signals: { https: websiteUrl?.startsWith('https://') },
         };
       })
@@ -223,6 +296,8 @@ export class LocalBusinessSearchProvider implements BusinessSearchProvider {
         websiteUrl: index === 0 ? undefined : `https://example.com/${index}`,
         email: index % 2 === 0 ? `contact${index}@example.com` : undefined,
         phone: index % 3 === 0 ? `+3300000000${index}` : undefined,
+        cuisines: [],
+        imageUrls: [],
         rating: 3.8 + index * 0.2,
         reviewCount: 18 + index * 13,
         signals:

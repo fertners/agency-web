@@ -6,6 +6,7 @@ import {
   ProspectRepository,
   CommercialRepository,
   DeliveryRepository,
+  OperationsRepository,
   createDatabaseClient,
   WebsiteRepository,
 } from '@ai-web-agency/database';
@@ -23,6 +24,7 @@ export class DatabaseService implements HealthProbe, OnApplicationShutdown {
   readonly prospects = new ProspectRepository(this.client.db);
   readonly commercial = new CommercialRepository(this.client.db);
   readonly delivery = new DeliveryRepository(this.client.db);
+  readonly operations = new OperationsRepository(this.client.db);
   readonly websites = new WebsiteRepository(this.client.db);
 
   async ping(): Promise<void> {

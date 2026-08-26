@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  isProspectTransitionAllowed,
   createProposalRequestSchema,
   draftStatusSchema,
   prospectStatusSchema,
   proposalStatusSchema,
+  publicProposalDecisionSchema,
 } from '../src/index.js';
 
 describe('Phase 6 commercial contracts', () => {
@@ -26,5 +28,21 @@ describe('Phase 6 commercial contracts', () => {
         scope: ['Site responsive'],
       }).currency,
     ).toBe('EUR');
+  });
+
+  it('only permits declared prospect status transitions', () => {
+    expect(isProspectTransitionAllowed('DISCOVERED', 'ANALYZING')).toBe(true);
+    expect(isProspectTransitionAllowed('DISCOVERED', 'WON')).toBe(false);
+    expect(isProspectTransitionAllowed('WON', 'DISCOVERED')).toBe(false);
+  });
+
+  it('only accepts explicit public proposal decisions', () => {
+    expect(
+      publicProposalDecisionSchema.parse({ decision: 'accept' }).decision,
+    ).toBe('accept');
+    expect(
+      publicProposalDecisionSchema.safeParse({ decision: 'unsubscribe' })
+        .success,
+    ).toBe(false);
   });
 });

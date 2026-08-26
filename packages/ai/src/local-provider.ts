@@ -24,19 +24,25 @@ export class LocalAIProvider implements AIProvider {
   ): Promise<AIProviderResult<RestaurantBriefs>> {
     const { business } = request;
     const city = business.address.city;
-    const cuisine = business.cuisines[0] ?? 'de saison';
+    const cuisine = business.cuisines[0];
+    const hasContact = Object.values(business.contact).some(Boolean);
     const output = restaurantBriefsSchema.parse({
       content: {
         headline: business.tagline ?? `${business.name}, une table à découvrir`,
-        subheadline: `Une cuisine ${cuisine.toLocaleLowerCase('fr-FR')} servie avec générosité au cœur de ${city}.`,
+        subheadline:
+          cuisine === undefined
+            ? `${business.name}, restaurant à ${city}.`
+            : `Une cuisine ${cuisine.toLocaleLowerCase('fr-FR')} servie avec générosité au cœur de ${city}.`,
         about: business.description,
         primaryCallToAction: business.services.includes('RESERVATIONS')
           ? 'Réserver une table'
-          : 'Nous contacter',
+          : hasContact
+            ? 'Nous contacter'
+            : 'Nous trouver',
         specialtiesHeading: 'Les assiettes du moment',
         seoTitle: `${business.name} — Restaurant à ${city}`.slice(0, 60),
         seoDescription:
-          `${business.description} Découvrez la carte et les horaires de ${business.name} à ${city}.`.slice(
+          `${business.description} ${business.name}, restaurant à ${city}.`.slice(
             0,
             160,
           ),

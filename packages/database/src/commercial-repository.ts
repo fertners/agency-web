@@ -3,16 +3,23 @@ import type {
   CreateProposalRequest,
   ProspectStatus,
 } from '@ai-web-agency/shared';
-import { asc, desc, eq, max } from 'drizzle-orm';
+import { randomBytes } from 'node:crypto';
+import { and, asc, desc, eq, isNull, lt, max } from 'drizzle-orm';
 import type { Database } from './client.js';
+import { hashContactIdentity } from './contact-identity.js';
 import {
+  clients,
   communicationDrafts,
   companies,
+  contactSuppressions,
+  conversationMessages,
   conversations,
   proposals,
   prospectNotes,
   prospects,
   prospectStatusHistory,
+  websites,
+  websiteVersions,
 } from './schema/index.js';
 
 export class CommercialRepository {
@@ -90,6 +97,9 @@ export class CommercialRepository {
     input: CreateProposalRequest,
     title: string,
     summary: string,
+    message: string,
+    analysisIssues: string[],
+    previewUrl: string,
   ) {
     return this.database.transaction(async (tx) => {
       const [versionRow] = await tx
@@ -104,6 +114,10 @@ export class CommercialRepository {
           status: 'NEEDS_REVIEW',
           title,
           summary,
+          message,
+          analysisIssues,
+          previewUrl,
+          publicToken: randomBytes(32).toString('base64url'),
           scope: input.scope,
           priceCents: input.priceCents,
           currency: input.currency,
@@ -122,12 +136,129 @@ export class CommercialRepository {
   }
 
   async decideProposal(id: string, status: 'APPROVED' | 'REJECTED') {
+    const now = new Date();
     const [row] = await this.database
       .update(proposals)
-      .set({ status, updatedAt: new Date() })
+      .set({
+        status,
+        publishedAt: status === 'APPROVED' ? now : null,
+        expiresAt:
+          status === 'APPROVED'
+            ? new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+            : null,
+        updatedAt: now,
+      })
       .where(eq(proposals.id, id))
       .returning();
     return row;
+  }
+
+  async findLatestPreview(companyId: string) {
+    const [row] = await this.database
+      .select({ website: websites, version: websiteVersions })
+      .from(websites)
+      .innerJoin(websiteVersions, eq(websiteVersions.websiteId, websites.id))
+      .where(eq(websites.companyId, companyId))
+      .orderBy(desc(websiteVersions.version))
+      .limit(1);
+    return row;
+  }
+
+  async findPublicProposal(token: string) {
+    const [row] = await this.database
+      .select({ proposal: proposals, company: companies })
+      .from(proposals)
+      .innerJoin(prospects, eq(proposals.prospectId, prospects.id))
+      .innerJoin(companies, eq(prospects.companyId, companies.id))
+      .where(eq(proposals.publicToken, token));
+    return row;
+  }
+
+  async respondToPublicProposal(
+    token: string,
+    decision: 'ACCEPTED' | 'DECLINED',
+  ) {
+    return this.database.transaction(async (tx) => {
+      const [source] = await tx
+        .select({
+          proposal: proposals,
+          prospect: prospects,
+          company: companies,
+        })
+        .from(proposals)
+        .innerJoin(prospects, eq(proposals.prospectId, prospects.id))
+        .innerJoin(companies, eq(prospects.companyId, companies.id))
+        .where(eq(proposals.publicToken, token))
+        .for('update');
+      if (
+        source === undefined ||
+        source.proposal.status !== 'APPROVED' ||
+        source.proposal.response !== null ||
+        source.proposal.expiresAt === null ||
+        source.proposal.expiresAt <= new Date()
+      )
+        return undefined;
+
+      const now = new Date();
+      if (decision === 'ACCEPTED') {
+        await tx
+          .update(proposals)
+          .set({ response: decision, respondedAt: now, updatedAt: now })
+          .where(eq(proposals.id, source.proposal.id));
+        if (source.prospect.status !== 'INTERESTED') {
+          await tx.insert(prospectStatusHistory).values({
+            prospectId: source.prospect.id,
+            fromStatus: source.prospect.status,
+            toStatus: 'INTERESTED',
+            note: 'Proposition acceptée depuis le lien public',
+          });
+          await tx
+            .update(prospects)
+            .set({ status: 'INTERESTED', updatedAt: now })
+            .where(eq(prospects.id, source.prospect.id));
+        }
+        return decision;
+      }
+
+      const [client] = await tx
+        .select({ id: clients.id })
+        .from(clients)
+        .where(eq(clients.companyId, source.company.id));
+      if (client !== undefined) return undefined;
+      await tx
+        .insert(contactSuppressions)
+        .values({
+          identityHash: hashContactIdentity(source.company.fingerprint),
+          reason: 'OPT_OUT',
+          retainUntil: new Date(now.getTime() + 3 * 365 * 24 * 60 * 60 * 1000),
+        })
+        .onConflictDoNothing({ target: contactSuppressions.identityHash });
+      await tx.delete(companies).where(eq(companies.id, source.company.id));
+      return decision;
+    });
+  }
+
+  async deleteExpiredUnanswered(now = new Date()): Promise<number> {
+    return this.database.transaction(async (tx) => {
+      const rows = await tx
+        .select({ companyId: companies.id })
+        .from(proposals)
+        .innerJoin(prospects, eq(proposals.prospectId, prospects.id))
+        .innerJoin(companies, eq(prospects.companyId, companies.id))
+        .where(and(isNull(proposals.response), lt(proposals.expiresAt, now)));
+      let deleted = 0;
+      for (const companyId of new Set(rows.map((row) => row.companyId))) {
+        const [client] = await tx
+          .select({ id: clients.id })
+          .from(clients)
+          .where(eq(clients.companyId, companyId));
+        if (client === undefined) {
+          await tx.delete(companies).where(eq(companies.id, companyId));
+          deleted += 1;
+        }
+      }
+      return deleted;
+    });
   }
 
   async createDraft(
@@ -185,5 +316,28 @@ export class CommercialRepository {
           .orderBy(asc(communicationDrafts.createdAt)),
       })),
     );
+  }
+
+  async getConversation(id: string) {
+    const [root] = await this.database
+      .select({ conversation: conversations, prospectName: companies.name })
+      .from(conversations)
+      .innerJoin(prospects, eq(conversations.prospectId, prospects.id))
+      .innerJoin(companies, eq(prospects.companyId, companies.id))
+      .where(eq(conversations.id, id));
+    if (!root) return undefined;
+    const [drafts, messages] = await Promise.all([
+      this.database
+        .select()
+        .from(communicationDrafts)
+        .where(eq(communicationDrafts.conversationId, id))
+        .orderBy(asc(communicationDrafts.createdAt)),
+      this.database
+        .select()
+        .from(conversationMessages)
+        .where(eq(conversationMessages.conversationId, id))
+        .orderBy(asc(conversationMessages.createdAt)),
+    ]);
+    return { ...root, drafts, messages };
   }
 }

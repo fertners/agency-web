@@ -36,11 +36,31 @@ export default async function ClientsPage() {
             <Card key={client.id}>
               <CardHeader>
                 <div className="flex justify-between">
-                  <h2 className="font-semibold">{client.name}</h2>
+                  <h2 className="font-semibold">
+                    <a
+                      className="hover:text-violet-700"
+                      href={`/clients/${client.id}`}
+                    >
+                      {client.name}
+                    </a>
+                  </h2>
                   <Badge>{client.status}</Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                <p className="text-sm text-slate-500">
+                  Company :{' '}
+                  <a
+                    className="font-mono text-violet-700"
+                    href={
+                      client.companyId ? `/companies/${client.companyId}` : '#'
+                    }
+                  >
+                    {client.companyId ?? 'Non liée'}
+                  </a>
+                  {' · '}Converti le{' '}
+                  {new Date(client.convertedAt).toLocaleDateString('fr-FR')}
+                </p>
                 {projects
                   .filter((project) => project.clientId === client.id)
                   .map((project) => (

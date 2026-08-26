@@ -86,3 +86,5 @@ export * from './quality.js';
 export * from './prospects.js';
 export * from './commercial.js';
 export * from './delivery.js';
+export * from './operations.js';
+export * from './branding.js';

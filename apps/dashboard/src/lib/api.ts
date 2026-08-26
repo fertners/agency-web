@@ -26,12 +26,16 @@ import {
   type ProspectSearchRequest,
   type CreateProspectSearchResponse,
   communicationDraftSchema,
+  conversationDetailSchema,
   conversationListResponseSchema,
   proposalListResponseSchema,
   proposalSchema,
+  publicProposalDecisionResponseSchema,
+  publicProposalSchema,
   prospectDetailResponseSchema,
   type CommunicationDraft,
   type ConversationListResponse,
+  type ConversationDetail,
   type CreateDraftRequest,
   type CreateProposalRequest,
   type CreateProspectNoteRequest,
@@ -39,10 +43,13 @@ import {
   type Proposal,
   type ProposalDecisionRequest,
   type ProposalListResponse,
+  type PublicProposal,
+  type PublicProposalDecisionResponse,
   type ProspectDetailResponse,
   type UpdateProspectStatusRequest,
   attachProjectWebsiteRequestSchema,
   clientListResponseSchema,
+  clientDetailSchema,
   convertProspectResponseSchema,
   createDeploymentResponseSchema,
   deploymentListResponseSchema,
@@ -51,6 +58,7 @@ import {
   projectSchema,
   type AttachProjectWebsiteRequest,
   type ClientListResponse,
+  type ClientDetail,
   type ConvertProspectRequest,
   type CreateDeploymentRequest,
   type CreateDeploymentResponse,
@@ -59,6 +67,27 @@ import {
   type Project,
   type ProjectListResponse,
   type RollbackDeploymentRequest,
+  analyticsSchema,
+  companyDetailSchema,
+  companyListResponseSchema,
+  dashboardOverviewSchema,
+  operationsJobDetailSchema,
+  operationsJobListSchema,
+  paginatedProspectListSchema,
+  settingsResponseSchema,
+  templateListSchema,
+  templateDetailSchema,
+  type Analytics,
+  type CompanyDetail,
+  type CompanyListResponse,
+  type DashboardOverview,
+  type OperationsJobDetail,
+  type OperationsJobList,
+  type PaginatedProspectList,
+  type SettingsResponse,
+  type TemplateList,
+  type TemplateDetail,
+  type UpdateSettingsRequest,
 } from '@ai-web-agency/shared';
 
 function getApiUrl(): string {
@@ -151,6 +180,25 @@ export async function decideProposal(
     ),
   );
 }
+export async function getPublicProposal(
+  token: string,
+): Promise<PublicProposal> {
+  return publicProposalSchema.parse(
+    await getJson(`/public/proposals/${encodeURIComponent(token)}`),
+  );
+}
+export async function respondToPublicProposal(
+  token: string,
+  decision: 'accept' | 'decline',
+): Promise<PublicProposalDecisionResponse> {
+  return publicProposalDecisionResponseSchema.parse(
+    await mutate(
+      `/public/proposals/${encodeURIComponent(token)}/respond`,
+      'POST',
+      { decision },
+    ),
+  );
+}
 export async function createConversationDraft(
   id: string,
   request: CreateDraftRequest,
@@ -165,6 +213,11 @@ export async function createConversationDraft(
 }
 export async function getConversations(): Promise<ConversationListResponse> {
   return conversationListResponseSchema.parse(await getJson('/conversations'));
+}
+export async function getConversation(id: string): Promise<ConversationDetail> {
+  return conversationDetailSchema.parse(
+    await getJson(`/conversations/${encodeURIComponent(id)}`),
+  );
 }
 export async function decideDraft(
   id: string,
@@ -193,6 +246,11 @@ export async function convertProspect(
 }
 export async function getClients(): Promise<ClientListResponse> {
   return clientListResponseSchema.parse(await getJson('/clients'));
+}
+export async function getClient(id: string): Promise<ClientDetail> {
+  return clientDetailSchema.parse(
+    await getJson(`/clients/${encodeURIComponent(id)}`),
+  );
 }
 export async function getProjects(): Promise<ProjectListResponse> {
   return projectListResponseSchema.parse(await getJson('/projects'));
@@ -244,6 +302,75 @@ async function getJson(path: string): Promise<unknown> {
   return response.json() as Promise<unknown>;
 }
 
+export async function getDashboardOverview(
+  period = '30d',
+): Promise<DashboardOverview> {
+  return dashboardOverviewSchema.parse(
+    await getJson(`/dashboard/overview?period=${encodeURIComponent(period)}`),
+  );
+}
+
+export async function getAnalytics(period = '30d'): Promise<Analytics> {
+  return analyticsSchema.parse(
+    await getJson(`/analytics?period=${encodeURIComponent(period)}`),
+  );
+}
+
+export async function getCompanies(
+  query = 'page=1&limit=20',
+): Promise<CompanyListResponse> {
+  return companyListResponseSchema.parse(await getJson(`/companies?${query}`));
+}
+
+export async function getCompany(id: string): Promise<CompanyDetail> {
+  return companyDetailSchema.parse(
+    await getJson(`/companies/${encodeURIComponent(id)}`),
+  );
+}
+
+export async function getProspectDirectory(
+  query = 'page=1&limit=20',
+): Promise<PaginatedProspectList> {
+  return paginatedProspectListSchema.parse(
+    await getJson(`/prospect-directory?${query}`),
+  );
+}
+
+export async function getOperationsJobs(
+  query = 'page=1&limit=20',
+): Promise<OperationsJobList> {
+  return operationsJobListSchema.parse(await getJson(`/agent-jobs?${query}`));
+}
+
+export async function getOperationsJob(
+  id: string,
+): Promise<OperationsJobDetail> {
+  return operationsJobDetailSchema.parse(
+    await getJson(`/agent-jobs/${encodeURIComponent(id)}`),
+  );
+}
+
+export async function getTemplates(): Promise<TemplateList> {
+  return templateListSchema.parse(await getJson('/templates'));
+}
+export async function getTemplate(id: string): Promise<TemplateDetail> {
+  return templateDetailSchema.parse(
+    await getJson(`/templates/${encodeURIComponent(id)}`),
+  );
+}
+
+export async function getSettings(): Promise<SettingsResponse> {
+  return settingsResponseSchema.parse(await getJson('/settings'));
+}
+
+export async function updateSettings(
+  request: UpdateSettingsRequest,
+): Promise<SettingsResponse> {
+  return settingsResponseSchema.parse(
+    await mutate('/settings', 'PATCH', request),
+  );
+}
+
 export async function getHealth(): Promise<HealthResponse> {
   return healthResponseSchema.parse(await getJson('/health'));
 }
@@ -279,6 +406,18 @@ export async function createRestaurantWebsite(
   if (!response.ok)
     throw new Error('La création du site a échoué. Vérifiez les champs.');
   return createRestaurantWebsiteResponseSchema.parse(body);
+}
+
+export async function generateWebsiteFromProspect(
+  prospectId: string,
+): Promise<CreateRestaurantWebsiteResponse> {
+  return createRestaurantWebsiteResponseSchema.parse(
+    await mutate(
+      `/websites/from-prospect/${encodeURIComponent(prospectId)}`,
+      'POST',
+      {},
+    ),
+  );
 }
 
 export async function getWebsiteVersions(

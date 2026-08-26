@@ -140,7 +140,12 @@ export default async function WebsitesPage() {
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="font-semibold text-slate-900">
-                            {website.name}
+                            <Link
+                              className="hover:text-violet-700"
+                              href={`/websites/${website.websiteId}`}
+                            >
+                              {website.name}
+                            </Link>
                           </h3>
                           <Badge
                             className={
