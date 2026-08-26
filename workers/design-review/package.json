@@ -1,0 +1,30 @@
+{
+  "name": "@ai-web-agency/design-review-worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx watch src/main.ts",
+    "lint": "eslint src test",
+    "start": "node dist/main.js",
+    "test": "vitest run test/unit",
+    "test:integration": "vitest run test/integration",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ai-web-agency/ai": "workspace:*",
+    "@ai-web-agency/browser": "workspace:*",
+    "@ai-web-agency/database": "workspace:*",
+    "@ai-web-agency/queue": "workspace:*",
+    "@ai-web-agency/shared": "workspace:*",
+    "@ai-web-agency/websites": "workspace:*",
+    "bullmq": "^6.0.9"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "tsx": "^4.20.5",
+    "typescript": "catalog:",
+    "vitest": "^3.2.4"
+  }
+}

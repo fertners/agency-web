@@ -1,0 +1,10 @@
+.next
+apps/dashboard/next-env.d.ts
+apps/preview/next-env.d.ts
+coverage
+dist
+docs/PROJECT_SPECIFICATION.md
+node_modules
+packages/database/migrations/meta
+pnpm-lock.yaml
+sites

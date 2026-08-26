@@ -1,0 +1,41 @@
+{
+  "name": "ai-web-agency",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=22 <25",
+    "pnpm": ">=11 <12"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "eslint eslint.config.mjs && turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "infra:up": "docker compose up -d --wait",
+    "infra:down": "docker compose down",
+    "infra:logs": "docker compose logs --follow",
+    "infra:status": "docker compose ps",
+    "db:generate": "pnpm --filter @ai-web-agency/database db:generate",
+    "db:migrate": "pnpm --filter @ai-web-agency/database db:migrate",
+    "db:check": "pnpm --filter @ai-web-agency/database db:check",
+    "db:test": "pnpm --filter @ai-web-agency/database test:integration",
+    "api:test": "pnpm --filter @ai-web-agency/api test:integration",
+    "workflow:test": "pnpm --filter @ai-web-agency/foundation-worker test:integration",
+    "generation:test": "pnpm --filter @ai-web-agency/generation-worker test:integration",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.34.0",
+    "eslint": "^9.34.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.3.0",
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.6",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.41.0"
+  }
+}

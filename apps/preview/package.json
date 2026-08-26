@@ -1,0 +1,28 @@
+{
+  "name": "@ai-web-agency/preview",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev --port 3002",
+    "lint": "eslint src",
+    "start": "next start --port 3002",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-web-agency/shared": "workspace:*",
+    "@ai-web-agency/seo": "workspace:*",
+    "@ai-web-agency/websites": "workspace:*",
+    "next": "^16.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "typescript": "catalog:",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,24 @@
+# Dependencies and build outputs
+node_modules/
+.pnpm-store/
+.next/
+dist/
+coverage/
+.turbo/
+*.tsbuildinfo
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local tooling
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+
+# Generated local website artifacts
+sites/
+artifacts/

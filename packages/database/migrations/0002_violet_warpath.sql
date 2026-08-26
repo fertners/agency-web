@@ -1,0 +1,3 @@
+ALTER TABLE "website_versions" ADD COLUMN "agent_job_id" uuid;--> statement-breakpoint
+ALTER TABLE "website_versions" ADD CONSTRAINT "website_versions_agent_job_id_agent_jobs_id_fk" FOREIGN KEY ("agent_job_id") REFERENCES "public"."agent_jobs"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "website_versions_agent_job_unique" ON "website_versions" USING btree ("agent_job_id");

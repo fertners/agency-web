@@ -1,0 +1,36 @@
+{
+  "name": "@ai-web-agency/database",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "db:generate": "pnpm --filter @ai-web-agency/shared build && drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:check": "drizzle-kit check",
+    "lint": "eslint src test drizzle.config.ts",
+    "test": "vitest run test/unit",
+    "test:integration": "vitest run test/integration",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ai-web-agency/shared": "workspace:*",
+    "drizzle-orm": "^0.44.5",
+    "pg": "^8.16.3",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@types/pg": "^8.15.5",
+    "dotenv": "^17.2.1",
+    "drizzle-kit": "^0.31.4",
+    "typescript": "catalog:",
+    "vitest": "^3.2.4"
+  }
+}
