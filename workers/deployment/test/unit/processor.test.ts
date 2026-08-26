@@ -17,6 +17,7 @@ describe('deployment processor', () => {
       },
     };
     const processor = createDeploymentProcessor(repositories, {
+      name: 'local-preview',
       deploy: vi
         .fn()
         .mockResolvedValue({ url: 'http://127.0.0.1:3002/preview/a/b' }),
@@ -29,6 +30,7 @@ describe('deployment processor', () => {
         websiteId: '27d59fde-e85a-47ea-bdf0-53281e19bc0f',
         versionId: 'b44e3fb6-d25d-483e-aa66-f95a7a8ed399',
         environment: 'PREVIEW',
+        provider: 'local-preview',
       },
       attemptsMade: 0,
       opts: { attempts: 2 },

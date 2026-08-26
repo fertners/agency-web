@@ -2,8 +2,9 @@ import {
   AgentJobRepository,
   createDatabaseClient,
   DeliveryRepository,
+  WebsiteRepository,
 } from '@ai-web-agency/database';
-import { LocalDeploymentProvider } from './provider.js';
+import { createDeploymentProvider } from './provider.js';
 import { createDeploymentWorker } from './worker.js';
 
 const client = createDatabaseClient();
@@ -12,7 +13,7 @@ const worker = createDeploymentWorker(
     agentJobs: new AgentJobRepository(client.db),
     delivery: new DeliveryRepository(client.db),
   },
-  new LocalDeploymentProvider(process.env.PREVIEW_BASE_URL),
+  createDeploymentProvider(new WebsiteRepository(client.db)),
 );
 worker.on('error', () =>
   console.error('Deployment worker encountered an infrastructure error'),

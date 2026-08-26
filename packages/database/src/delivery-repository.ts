@@ -1,4 +1,7 @@
-import type { DeploymentEnvironment } from '@ai-web-agency/shared';
+import type {
+  DeploymentEnvironment,
+  DeploymentProvider,
+} from '@ai-web-agency/shared';
 import { and, desc, eq } from 'drizzle-orm';
 import type { Database } from './client.js';
 import {
@@ -167,6 +170,7 @@ export class DeliveryRepository {
     versionId: string,
     environment: DeploymentEnvironment,
     agentJobId: string,
+    provider: DeploymentProvider,
   ) {
     const [existing] = await this.database
       .select()
@@ -175,7 +179,14 @@ export class DeliveryRepository {
     if (existing) return existing;
     const [row] = await this.database
       .insert(deployments)
-      .values({ projectId, websiteId, versionId, environment, agentJobId })
+      .values({
+        projectId,
+        websiteId,
+        versionId,
+        environment,
+        agentJobId,
+        provider,
+      })
       .returning();
     return row;
   }

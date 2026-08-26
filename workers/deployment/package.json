@@ -15,7 +15,10 @@
     "@ai-web-agency/database": "workspace:*",
     "@ai-web-agency/queue": "workspace:*",
     "@ai-web-agency/shared": "workspace:*",
-    "bullmq": "^6.0.9"
+    "@ai-web-agency/websites": "workspace:*",
+    "bullmq": "^6.0.9",
+    "wrangler": "^4.0.0",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

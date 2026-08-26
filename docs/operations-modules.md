@@ -30,7 +30,10 @@ Les données affichées par le dashboard proviennent de l'API et de PostgreSQL. 
 - L'analyse IA des conversations n'est pas branchée. Aucun envoi automatique ou fournisseur email n'est activé.
 - Retry/cancel sont exposés uniquement pour les états BullMQ compatibles et respectent `maxAttempts`.
 - En production, `ADMIN_API_TOKEN` est obligatoire. Un jeton `OPERATOR_API_TOKEN` optionnel permet les opérations ordinaires, mais pas Settings, les déploiements ni Retry/Cancel. Les propositions et captures nécessaires à leur affichage restent publiques.
-- Paiement réel, domaine personnalisé et déploiement cloud restent volontairement hors service faute de fournisseurs et décisions explicites.
+- Cloudflare Pages est le fournisseur de publication retenu. Il reste inactif
+  sans `CLOUDFLARE_ACCOUNT_ID` et `CLOUDFLARE_API_TOKEN`; le mode local demeure
+  le fallback. Paiement réel et domaine personnalisé restent hors service faute
+  de fournisseur et décisions explicites.
 
 Ces limites sont des travaux futurs réels, pas des données fictives ni des boutons décoratifs.
 

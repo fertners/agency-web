@@ -20,6 +20,7 @@ import {
   type CreateDeploymentRequest,
   type CreateDeploymentResponse,
   type Deployment,
+  type DeploymentProvider,
   type DeploymentListResponse,
   type Project,
   type ProjectListResponse,
@@ -171,16 +172,18 @@ export class DeliveryService {
     const project = await this.database.delivery.findProject(projectId);
     if (!project?.websiteId || !project.versionId)
       throw new NotFoundException('Project has no approved website version');
-    const job = await this.database.agentJobs.createTyped('deployment.local', {
-      projectId,
-      ...input,
-    });
+    const provider = this.deploymentProvider();
+    const job = await this.database.agentJobs.createTyped(
+      `deployment.${provider}`,
+      { projectId, ...input },
+    );
     const deployment = await this.database.delivery.createDeployment(
       projectId,
       project.websiteId,
       project.versionId,
       input.environment,
       job.id,
+      provider,
     );
     if (!deployment) throw new Error('Failed to create deployment');
     const payload = deploymentJobPayloadSchema.parse({
@@ -189,6 +192,7 @@ export class DeliveryService {
       websiteId: project.websiteId,
       versionId: project.versionId,
       environment: input.environment,
+      provider,
     });
     try {
       const queueJobId = await this.queue.add(job.id, payload);
@@ -201,16 +205,24 @@ export class DeliveryService {
       await this.database.agentJobs.markFailed(
         job.id,
         0,
-        'Unable to enqueue local deployment',
+        `Unable to enqueue ${provider} deployment`,
       );
       await this.database.delivery.failDeployment(deployment.id);
-      throw new Error('Unable to enqueue local deployment');
+      throw new Error(`Unable to enqueue ${provider} deployment`);
     }
     return createDeploymentResponseSchema.parse({
       jobId: job.id,
       deploymentId: deployment.id,
       status: 'PENDING',
     });
+  }
+
+  private deploymentProvider(): DeploymentProvider {
+    const configured = process.env.DEPLOYMENT_PROVIDER?.trim().toLowerCase();
+    if (configured === undefined || configured === '' || configured === 'local')
+      return 'local-preview';
+    if (configured === 'cloudflare-pages') return configured;
+    throw new Error(`Unsupported DEPLOYMENT_PROVIDER: ${configured}`);
   }
   async listDeployments(): Promise<DeploymentListResponse> {
     return deploymentListResponseSchema.parse({

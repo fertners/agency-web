@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   LocalAIProvider,
+  OllamaAIProvider,
   OpenAIProvider,
   createAIProviderFromEnvironment,
 } from '../src/index.js';
@@ -19,6 +20,17 @@ describe('AI provider factory', () => {
     });
     expect(provider).toBeInstanceOf(OpenAIProvider);
     expect(provider.model).toBe('test-model');
+  });
+
+  it('builds the local Ollama provider without an API key', () => {
+    const provider = createAIProviderFromEnvironment({
+      AI_PROVIDER: 'ollama',
+      OLLAMA_BASE_URL: 'http://127.0.0.1:11434/',
+      OLLAMA_MODEL: 'gemma3:4b',
+    });
+    expect(provider).toBeInstanceOf(OllamaAIProvider);
+    expect(provider.model).toBe('gemma3:4b');
+    expect(provider.supportsVision).toBe(true);
   });
 
   it('fails fast when OpenAI is selected without a key', () => {

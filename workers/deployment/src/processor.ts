@@ -34,6 +34,10 @@ export function createDeploymentProcessor(
     await repositories.agentJobs.markRunning(job.id, attempt);
     await repositories.delivery.markDeploymentRunning(payload.deploymentId);
     try {
+      if (payload.provider !== provider.name)
+        throw new Error(
+          `Deployment provider mismatch: job=${payload.provider}, worker=${provider.name}`,
+        );
       const result = await provider.deploy(payload);
       await repositories.delivery.completeDeployment(
         payload.deploymentId,
@@ -52,12 +56,12 @@ export function createDeploymentProcessor(
         await repositories.agentJobs.markFailed(
           job.id,
           attempt,
-          'Local deployment failed',
+          `${provider.name} deployment failed`,
         );
       } else await repositories.agentJobs.markPendingRetry(job.id, attempt);
       throw error instanceof Error
         ? error
-        : new Error('Local deployment failed');
+        : new Error(`${provider.name} deployment failed`);
     }
   };
 }

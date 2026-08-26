@@ -7,6 +7,8 @@
 - explicit attachment of an approved website version to a project;
 - provider-independent `DeploymentService` contract;
 - local preview provider with no cloud credentials or public publication;
+- Cloudflare Pages Direct Upload provider for public preview and production
+  URLs, with one isolated Pages project per Website;
 - BullMQ deployment queue and independent worker;
 - durable deployment status, active version, URL, failure, and rollback history;
 - operator pages `/clients` and `/deployments`.
@@ -15,7 +17,25 @@
 
 ## Safety boundary
 
-The local provider only activates the already isolated preview URL. `PRODUCTION` is represented in the contract for forward compatibility but no public cloud provider, custom domain, payment provider, or automatic production mutation is configured. These require explicit provider, legal, billing, and secret-management decisions.
+The local provider only activates the already isolated preview URL. Cloudflare
+Pages can publish a validated static Website version when
+`DEPLOYMENT_PROVIDER=cloudflare-pages` and the account credentials are supplied.
+No automatic publication is performed. Custom domains and payment providers
+still require explicit legal, billing, and secret-management decisions.
+
+## Cloudflare Pages
+
+Set the following only in the runtime environment (never in Git):
+
+```dotenv
+DEPLOYMENT_PROVIDER=cloudflare-pages
+CLOUDFLARE_ACCOUNT_ID=<32-character account id>
+CLOUDFLARE_API_TOKEN=<token with Pages Write>
+CLOUDFLARE_PAGES_PROJECT_PREFIX=agency-site
+```
+
+The worker creates `PREFIX-<website-id>` when needed, deploys preview versions
+on isolated branches, and deploys approved production versions on `main`.
 
 ## Acceptance workflow
 

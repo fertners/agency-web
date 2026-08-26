@@ -22,6 +22,10 @@ export const deploymentStatusSchema = z.enum([
   'FAILED',
   'ROLLED_BACK',
 ]);
+export const deploymentProviderSchema = z.enum([
+  'local-preview',
+  'cloudflare-pages',
+]);
 
 export const convertProspectRequestSchema = z
   .object({ proposalId: z.uuid() })
@@ -70,7 +74,7 @@ export const deploymentSchema = z
     agentJobId: z.uuid().nullable(),
     environment: deploymentEnvironmentSchema,
     status: deploymentStatusSchema,
-    provider: z.literal('local-preview'),
+    provider: deploymentProviderSchema,
     url: z.url().nullable(),
     isActive: z.boolean(),
     replacesDeploymentId: z.uuid().nullable(),
@@ -142,6 +146,7 @@ export const deploymentJobPayloadSchema = z
     websiteId: z.uuid(),
     versionId: z.uuid(),
     environment: deploymentEnvironmentSchema,
+    provider: deploymentProviderSchema,
   })
   .strict();
 export const deploymentJobResultSchema = z
@@ -168,6 +173,7 @@ export type Client = z.infer<typeof clientSchema>;
 export type Project = z.infer<typeof projectSchema>;
 export type Deployment = z.infer<typeof deploymentSchema>;
 export type DeploymentEnvironment = z.infer<typeof deploymentEnvironmentSchema>;
+export type DeploymentProvider = z.infer<typeof deploymentProviderSchema>;
 export type ClientDetail = z.infer<typeof clientDetailSchema>;
 export type ClientListResponse = z.infer<typeof clientListResponseSchema>;
 export type ProjectListResponse = z.infer<typeof projectListResponseSchema>;

@@ -145,3 +145,13 @@ Les détails de conformité et les limites restantes sont consignés dans `docs/
   défaut et modèle OpenAI configurable. Son SQL idempotent a été appliqué
   directement sur la base locale après une erreur mémoire Windows de Drizzle
   CLI ; il pourra être rejoué normalement par Drizzle.
+
+## Publication Cloudflare Pages — 26 août 2026
+
+- Cloudflare Pages Direct Upload est branché comme fournisseur de publication
+  optionnel. Chaque Website reçoit un projet isolé et chaque version de preview
+  une branche publique.
+- Le worker produit un document HTML/CSS statique depuis la configuration
+  validée. Il n'exécute aucun code généré par IA.
+- L'activation nécessite `DEPLOYMENT_PROVIDER=cloudflare-pages`, un Account ID
+  et un token limité à Pages Write. Aucun secret n'est enregistré dans Git.

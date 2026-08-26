@@ -2,7 +2,10 @@ import { restaurantWebsiteConfigSchema } from '@ai-web-agency/shared';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
-import { RestaurantTemplate } from '../src/index.js';
+import {
+  renderStaticRestaurantDocument,
+  RestaurantTemplate,
+} from '../src/index.js';
 
 const config = restaurantWebsiteConfigSchema.parse({
   schemaVersion: 1,
@@ -70,6 +73,17 @@ const config = restaurantWebsiteConfigSchema.parse({
 });
 
 describe('RestaurantTemplate', () => {
+  it('renders a self-contained static document for public deployment', () => {
+    const document = renderStaticRestaurantDocument(config, {
+      canonicalUrl: 'https://maison-galatee.pages.dev',
+      stylesheet: '.awa-site{display:block}',
+    });
+    expect(document).toContain('<!doctype html>');
+    expect(document).toContain('https://maison-galatee.pages.dev');
+    expect(document).toContain('.awa-site{display:block}');
+    expect(document).toContain('Maison Galatée');
+  });
+
   it('renders structured restaurant content without scripts', () => {
     const markup = renderToStaticMarkup(<RestaurantTemplate config={config} />);
 
