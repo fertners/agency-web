@@ -224,7 +224,17 @@ export class CommercialRepository {
         .select({ id: clients.id })
         .from(clients)
         .where(eq(clients.companyId, source.company.id));
-      if (client !== undefined) return undefined;
+      const [acceptedProposal] = await tx
+        .select({ id: proposals.id })
+        .from(proposals)
+        .where(
+          and(
+            eq(proposals.prospectId, source.prospect.id),
+            eq(proposals.response, 'ACCEPTED'),
+          ),
+        );
+      if (client !== undefined || acceptedProposal !== undefined)
+        return undefined;
       await tx
         .insert(contactSuppressions)
         .values({
@@ -252,7 +262,17 @@ export class CommercialRepository {
           .select({ id: clients.id })
           .from(clients)
           .where(eq(clients.companyId, companyId));
-        if (client === undefined) {
+        const [acceptedProposal] = await tx
+          .select({ id: proposals.id })
+          .from(proposals)
+          .innerJoin(prospects, eq(proposals.prospectId, prospects.id))
+          .where(
+            and(
+              eq(prospects.companyId, companyId),
+              eq(proposals.response, 'ACCEPTED'),
+            ),
+          );
+        if (client === undefined && acceptedProposal === undefined) {
           await tx.delete(companies).where(eq(companies.id, companyId));
           deleted += 1;
         }
