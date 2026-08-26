@@ -59,7 +59,10 @@ export default async function ProposalsPage() {
                   ))}
                 </ul>
                 <p className="font-semibold">
-                  {(proposal.priceCents / 100).toLocaleString('fr-FR')}{' '}
+                  {proposal.websiteType === 'SHOWCASE'
+                    ? 'Site vitrine'
+                    : 'Site dynamique'}{' '}
+                  · {(proposal.priceCents / 100).toLocaleString('fr-FR')}{' '}
                   {proposal.currency} · {proposal.timelineDays} jours
                 </p>
                 <div className="mt-4 flex flex-wrap gap-4 text-sm">

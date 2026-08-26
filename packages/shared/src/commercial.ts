@@ -8,6 +8,7 @@ export const proposalStatusSchema = z.enum([
   'REJECTED',
 ]);
 export const proposalResponseSchema = z.enum(['ACCEPTED', 'DECLINED']);
+export const proposalWebsiteTypeSchema = z.enum(['SHOWCASE', 'DYNAMIC']);
 export const conversationStatusSchema = z.enum([
   'UNREAD',
   'OPEN',
@@ -43,7 +44,7 @@ export const createProspectNoteRequestSchema = z
   .strict();
 export const createProposalRequestSchema = z
   .object({
-    priceCents: z.coerce.number().int().min(0).max(100_000_000),
+    websiteType: proposalWebsiteTypeSchema,
     currency: z
       .string()
       .trim()
@@ -84,6 +85,8 @@ export const proposalSchema = z
     message: z.string(),
     analysisIssues: z.array(z.string()),
     previewUrl: z.url(),
+    previewImageUrl: z.url().nullable(),
+    websiteType: proposalWebsiteTypeSchema,
     publicPath: z.string().startsWith('/proposal/'),
     scope: z.array(z.string()),
     priceCents: z.number().int().nonnegative(),
@@ -104,6 +107,8 @@ export const publicProposalSchema = proposalSchema
     message: true,
     analysisIssues: true,
     previewUrl: true,
+    previewImageUrl: true,
+    websiteType: true,
     scope: true,
     priceCents: true,
     currency: true,

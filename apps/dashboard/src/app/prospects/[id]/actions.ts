@@ -41,7 +41,7 @@ export async function createProposalAction(id: string, formData: FormData) {
   await createProposal(
     id,
     createProposalRequestSchema.parse({
-      priceCents: Number(formData.get('priceEuros')) * 100,
+      websiteType: formData.get('websiteType'),
       currency: 'EUR',
       timelineDays: formData.get('timelineDays'),
       scope: (typeof scopeValue === 'string' ? scopeValue : '')

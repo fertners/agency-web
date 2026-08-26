@@ -3,12 +3,16 @@ import type { OpportunityAssessment } from '@ai-web-agency/shared';
 type ProposalContentInput = Readonly<{
   companyName: string;
   assessment: OpportunityAssessment;
-  previewUrl: string;
   priceCents: number;
   currency: string;
   timelineDays: number;
   scope: string[];
 }>;
+
+export const PROPOSAL_PRICE_CENTS = {
+  SHOWCASE: 25_000,
+  DYNAMIC: 100_000,
+} as const;
 
 const SCORE_LABELS = {
   websiteQuality: 'qualité générale du site',
@@ -57,7 +61,7 @@ Nous accompagnons les entreprises locales dans la création de sites web profess
 Les points relevés par notre outil d’analyse sont :
 ${issueLines}
 
-Nous avons préparé une proposition de site adaptée à votre activité. Vous pouvez la prévisualiser ici : ${input.previewUrl}
+Nous avons préparé une proposition de site adaptée à votre activité. Sa capture et sa prévisualisation sont disponibles dans la proposition ci-dessous.
 
 La prestation comprend :
 ${scopeLines}
@@ -65,7 +69,7 @@ ${scopeLines}
 Devis : ${formattedPrice}
 Délai estimé : ${input.timelineDays} jours
 
-Cette proposition ne vous engage pas. Consultez-la et répondez ici : {PROPOSAL_LINK}
+Cette proposition ne vous engage pas. Utilisez le bouton « Répondre à cette proposition » pour nous faire part de votre choix.
 
 Cordialement,
 L’équipe AI Web Agency`,

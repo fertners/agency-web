@@ -23,6 +23,10 @@ export const proposalResponseEnum = pgEnum('proposal_response', [
   'ACCEPTED',
   'DECLINED',
 ]);
+export const proposalWebsiteTypeEnum = pgEnum('proposal_website_type', [
+  'SHOWCASE',
+  'DYNAMIC',
+]);
 export const conversationStatusEnum = pgEnum('conversation_status', [
   'UNREAD',
   'OPEN',
@@ -104,6 +108,10 @@ export const proposals = pgTable(
     message: text('message').notNull(),
     analysisIssues: jsonb('analysis_issues').$type<string[]>().notNull(),
     previewUrl: text('preview_url').notNull(),
+    previewImageUrl: text('preview_image_url'),
+    websiteType: proposalWebsiteTypeEnum('website_type')
+      .notNull()
+      .default('SHOWCASE'),
     publicToken: varchar('public_token', { length: 64 }).notNull(),
     scope: jsonb('scope').$type<string[]>().notNull(),
     priceCents: integer('price_cents').notNull(),

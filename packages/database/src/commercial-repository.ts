@@ -100,6 +100,8 @@ export class CommercialRepository {
     message: string,
     analysisIssues: string[],
     previewUrl: string,
+    previewImageUrl: string,
+    priceCents: number,
   ) {
     return this.database.transaction(async (tx) => {
       const [versionRow] = await tx
@@ -117,9 +119,11 @@ export class CommercialRepository {
           message,
           analysisIssues,
           previewUrl,
+          previewImageUrl,
+          websiteType: input.websiteType,
           publicToken: randomBytes(32).toString('base64url'),
           scope: input.scope,
-          priceCents: input.priceCents,
+          priceCents,
           currency: input.currency,
           timelineDays: input.timelineDays,
         })

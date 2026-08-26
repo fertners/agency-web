@@ -4,16 +4,22 @@
 
 - qualification lifecycle from `NEW` through `CONVERTED` or `DISMISSED`;
 - durable status history and internal prospect notes;
-- immutable, versioned commercial proposals with price, currency, timeline, and scope;
+- immutable, versioned commercial proposals with fixed offer type, price,
+  currency, timeline, preview capture, and scope;
 - explicit proposal approval and rejection;
 - one conversation per prospect with structured email, phone-note, or manual drafts;
 - explicit draft approval and rejection;
 - operator pages for prospect detail, proposals, and conversations;
+- public proposal response page with explicit accept/opt-out decisions;
+- 30-day unanswered-proposal retention cleanup and hashed suppression list;
 - no email provider, send endpoint, or `SENT` status.
 
 ## Safety boundary
 
-Phase 6 prepares commercial material but never contacts a prospect. An approved draft remains an internal artifact. Adding delivery requires a separate decision covering the provider, applicable law, rate limits, suppression lists, opt-out handling, and action-time human confirmation.
+Phase 6 prepares commercial material but never sends it. An approved proposal
+may be shared manually. Adding email delivery still requires a separate decision
+covering the provider, applicable law, rate limits, and action-time human
+confirmation.
 
 ## Acceptance workflow
 

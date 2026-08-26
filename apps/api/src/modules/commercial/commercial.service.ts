@@ -39,7 +39,10 @@ import {
   type OnModuleInit,
 } from '@nestjs/common';
 import { DatabaseService } from '../../infrastructure/database/database.service.js';
-import { buildCommercialProposalContent } from './proposal-content.js';
+import {
+  buildCommercialProposalContent,
+  PROPOSAL_PRICE_CENTS,
+} from './proposal-content.js';
 
 function toProposal(row: {
   id: string;
@@ -51,6 +54,8 @@ function toProposal(row: {
   message: string;
   analysisIssues: string[];
   previewUrl: string;
+  previewImageUrl: string | null;
+  websiteType: 'SHOWCASE' | 'DYNAMIC';
   publicToken: string;
   scope: string[];
   priceCents: number;
@@ -215,11 +220,28 @@ export class CommercialService implements OnModuleInit, OnModuleDestroy {
     const previewBaseUrl =
       process.env.PREVIEW_BASE_URL ?? 'http://127.0.0.1:3002';
     const previewUrl = `${previewBaseUrl}/preview/${preview.website.id}/${preview.version.id}`;
+    const reviews = await this.database.designReviews.listForVersion(
+      preview.version.id,
+    );
+    const review = reviews.find(
+      (item) => item.status === 'COMPLETED' && item.browserReport !== null,
+    );
+    if (review === undefined)
+      throw new BadRequestException(
+        'A completed Design Review screenshot is required before creating a proposal',
+      );
+    const apiBaseUrl = (
+      process.env.PUBLIC_API_URL ?? 'http://127.0.0.1:3001'
+    ).replace(/\/$/, '');
+    const previewImageUrl = `${apiBaseUrl}/websites/${preview.website.id}/versions/${preview.version.id}/design-reviews/${review.id}/artifacts/desktop`;
+    const priceCents = PROPOSAL_PRICE_CENTS[input.websiteType];
     const content = buildCommercialProposalContent({
       companyName: prospect.company.name,
       assessment: prospect.prospect.assessment,
-      previewUrl,
-      ...input,
+      priceCents,
+      currency: input.currency,
+      timelineDays: input.timelineDays,
+      scope: input.scope,
     });
     const row = await this.database.commercial.createProposal(
       id,
@@ -229,6 +251,8 @@ export class CommercialService implements OnModuleInit, OnModuleDestroy {
       content.message,
       content.issues,
       previewUrl,
+      previewImageUrl,
+      priceCents,
     );
     if (!row) throw new Error('Failed to create proposal');
     return toProposal(row);
@@ -252,6 +276,8 @@ export class CommercialService implements OnModuleInit, OnModuleDestroy {
       message: proposal.message,
       analysisIssues: proposal.analysisIssues,
       previewUrl: proposal.previewUrl,
+      previewImageUrl: proposal.previewImageUrl,
+      websiteType: proposal.websiteType,
       scope: proposal.scope,
       priceCents: proposal.priceCents,
       currency: proposal.currency,

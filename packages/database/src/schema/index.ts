@@ -48,6 +48,7 @@ export {
   proposals,
   proposalStatusEnum,
   proposalResponseEnum,
+  proposalWebsiteTypeEnum,
   prospectNotes,
   prospectStatusHistory,
   type CommunicationDraftRow,

@@ -196,14 +196,15 @@ export default async function ProspectDetailPage({
               action={createProposalAction.bind(null, id)}
               className="grid gap-3 sm:grid-cols-3"
             >
-              <input
+              <select
                 required
-                name="priceEuros"
-                type="number"
-                min="0"
-                placeholder="Prix €"
+                name="websiteType"
+                defaultValue="SHOWCASE"
                 className="rounded-lg border p-2"
-              />
+              >
+                <option value="SHOWCASE">Site vitrine — 250 €</option>
+                <option value="DYNAMIC">Site dynamique — 1 000 €</option>
+              </select>
               <input
                 required
                 name="timelineDays"
@@ -243,7 +244,10 @@ export default async function ProspectDetailPage({
                     </p>
                   </details>
                   <p className="mt-2 font-medium">
-                    {(proposal.priceCents / 100).toLocaleString('fr-FR')}{' '}
+                    {proposal.websiteType === 'SHOWCASE'
+                      ? 'Site vitrine'
+                      : 'Site dynamique'}{' '}
+                    · {(proposal.priceCents / 100).toLocaleString('fr-FR')}{' '}
                     {proposal.currency} · {proposal.timelineDays} jours
                   </p>
                   {proposal.status === 'APPROVED' &&

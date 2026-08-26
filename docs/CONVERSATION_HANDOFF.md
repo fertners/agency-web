@@ -113,3 +113,14 @@ L'utilisateur a ensuite fourni les cahiers des charges détaillés des modules D
 - endpoints réels testés, sans mocks restaurés.
 
 Les détails de conformité et les limites restantes sont consignés dans `docs/operations-modules.md`. Ne pas présenter ces limites comme déjà livrées.
+
+## Proposition commerciale — tarification et présentation
+
+- Deux offres fixes sont validées : site vitrine à 250 EUR et site dynamique à
+  1 000 EUR. Le serveur calcule le prix ; le dashboard ne saisit plus un montant
+  libre.
+- Une nouvelle proposition exige une Design Review terminée et réutilise sa
+  capture desktop Playwright.
+- La page publique affiche la capture, conserve un lien secondaire vers la
+  preview interactive et propose un bouton **Répondre à cette proposition** qui
+  mène aux choix accepter/refuser.

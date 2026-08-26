@@ -39,7 +39,10 @@ Ces limites sont des travaux futurs réels, pas des données fictives ni des bou
 Une proposition créée depuis un prospect exige une analyse persistée et une
 version de website prévisualisable. Le contenu est déterministe : présentation,
 score, problèmes réellement présents dans l'analyse, périmètre, prix, délai et
-liens de prévisualisation/réponse. Aucun envoi automatique n'est effectué.
+capture Playwright de la prévisualisation. Le bouton de réponse ouvre la page
+publique ; aucune URL brute n'est intégrée au message. Les tarifs sont imposés
+côté serveur : site vitrine `250 EUR`, site dynamique `1 000 EUR`. Aucun envoi
+automatique n'est effectué.
 
 Après validation humaine, le lien public est actif pendant 30 jours. Une
 acceptation conserve le prospect et le passe à `INTERESTED`. Un refus supprime

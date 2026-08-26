@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { buildCommercialProposalContent } from '../../src/modules/commercial/proposal-content.js';
+import {
+  buildCommercialProposalContent,
+  PROPOSAL_PRICE_CENTS,
+} from '../../src/modules/commercial/proposal-content.js';
 
 describe('commercial proposal content', () => {
   it('uses persisted analysis evidence, preview and quote without invention', () => {
@@ -29,7 +32,6 @@ describe('commercial proposal content', () => {
           contactability: 10,
         },
       },
-      previewUrl: 'http://127.0.0.1:3002/preview/site/version',
       priceCents: 250000,
       currency: 'EUR',
       timelineDays: 21,
@@ -39,7 +41,12 @@ describe('commercial proposal content', () => {
     expect(result.issues).not.toContain('Contact direct disponible');
     expect(result.message).toContain('86/100');
     expect(result.message).toContain('2 500,00 €');
-    expect(result.message).toContain('{PROPOSAL_LINK}');
-    expect(result.message).toContain('http://127.0.0.1:3002/preview');
+    expect(result.message).toContain('Répondre à cette proposition');
+    expect(result.message).not.toContain('http://127.0.0.1:3002/preview');
+  });
+
+  it('applies the two fixed commercial prices', () => {
+    expect(PROPOSAL_PRICE_CENTS.SHOWCASE).toBe(25_000);
+    expect(PROPOSAL_PRICE_CENTS.DYNAMIC).toBe(100_000);
   });
 });

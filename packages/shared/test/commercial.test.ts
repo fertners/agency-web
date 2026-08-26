@@ -22,12 +22,24 @@ describe('Phase 6 commercial contracts', () => {
   it('normalizes proposal currency and validates scope', () => {
     expect(
       createProposalRequestSchema.parse({
-        priceCents: 250000,
+        websiteType: 'SHOWCASE',
         currency: 'eur',
         timelineDays: 21,
         scope: ['Site responsive'],
       }).currency,
     ).toBe('EUR');
+  });
+
+  it('rejects a caller-supplied proposal price', () => {
+    expect(
+      createProposalRequestSchema.safeParse({
+        websiteType: 'SHOWCASE',
+        priceCents: 1,
+        currency: 'EUR',
+        timelineDays: 21,
+        scope: ['Site responsive'],
+      }).success,
+    ).toBe(false);
   });
 
   it('only permits declared prospect status transitions', () => {
