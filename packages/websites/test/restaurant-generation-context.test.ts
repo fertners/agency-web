@@ -34,36 +34,47 @@ function restaurant(
 }
 
 describe('restaurant brand, content and theme preparation', () => {
-  it('uses the restaurant fallback when no brand signal is available', () => {
+  it('uses the dark saffron restaurant standard when no brand signal is available', () => {
     const selection = selectRestaurantTheme(restaurant());
 
     expect(selection).toMatchObject({
-      themeKey: 'restaurant-elegant-v1',
+      themeKey: 'restaurant-mediterranean-v1',
       usedCategoryFallback: true,
       matchedSignals: [],
     });
   });
 
-  it('matches a warm theme from verified business wording', () => {
+  it('keeps the restaurant standard for warm business wording', () => {
     const selection = selectRestaurantTheme(
       restaurant({ description: 'Un bistrot familial et authentique.' }),
     );
 
-    expect(selection.themeKey).toBe('restaurant-warm-v1');
-    expect(selection.usedCategoryFallback).toBe(false);
-    expect(selection.matchedSignals).toContain('familial');
+    expect(selection.themeKey).toBe('restaurant-mediterranean-v1');
+    expect(selection.usedCategoryFallback).toBe(true);
   });
 
-  it("selects the normalized MIT Chef's Kitchen theme for pizza signals", () => {
+  it('keeps the restaurant standard for pizza businesses', () => {
     const selection = selectRestaurantTheme(
       restaurant({ cuisines: ['pizza', 'italian'] }),
     );
 
     expect(selection).toMatchObject({
-      themeKey: 'restaurant-chefs-kitchen-v1',
-      usedCategoryFallback: false,
-      matchedSignals: ['pizza'],
+      themeKey: 'restaurant-mediterranean-v1',
+      usedCategoryFallback: true,
+      matchedSignals: [],
     });
+  });
+
+  it('selects the dark saffron theme for Greek restaurants', () => {
+    const selection = selectRestaurantTheme(
+      restaurant({ cuisines: ['Grecque', 'Méditerranéenne'] }),
+    );
+
+    expect(selection).toMatchObject({
+      themeKey: 'restaurant-mediterranean-v1',
+      usedCategoryFallback: false,
+    });
+    expect(selection.matchedSignals).toContain('grecque');
   });
 
   it('omits unsupported sections instead of inventing their content', () => {
@@ -113,7 +124,7 @@ describe('restaurant brand, content and theme preparation', () => {
       generation,
     );
 
-    expect(generation.theme.themeKey).toBe('restaurant-modern-v1');
+    expect(generation.theme.themeKey).toBe('restaurant-mediterranean-v1');
     expect(config.design).toMatchObject({
       primaryColor: '#102030',
       accentColor: '#D0A020',

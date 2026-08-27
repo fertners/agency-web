@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
 import { DashboardShell } from '@/components/dashboard-shell';
+import { ToastProvider } from '@/components/toast-provider';
 
 import './globals.css';
 
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body>
-        <DashboardShell>{children}</DashboardShell>
+        <ToastProvider>
+          <DashboardShell>{children}</DashboardShell>
+        </ToastProvider>
       </body>
     </html>
   );

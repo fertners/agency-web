@@ -4,7 +4,6 @@ export { Section } from './components/section.js';
 export { RestaurantTemplate } from './restaurant-template.js';
 export { generateRestaurantConfig } from './generate-restaurant-config.js';
 export { applyWebsiteCorrection } from './apply-correction.js';
-export { renderStaticRestaurantDocument } from './render-static-restaurant.js';
 export {
   RESTAURANT_THEMES,
   findRestaurantTheme,

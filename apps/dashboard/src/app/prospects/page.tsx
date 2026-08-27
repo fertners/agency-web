@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { getProspectDirectory } from '@/lib/api';
+import { ProspectBatchTable } from './prospect-batch-table';
 
 export const dynamic = 'force-dynamic';
 export default async function ProspectsPage({
@@ -130,57 +131,7 @@ export default async function ProspectsPage({
             </p>
           ) : (
             <>
-              <table className="w-full min-w-[1100px] text-left text-sm">
-                <thead className="border-b text-slate-500">
-                  <tr>
-                    <th className="pb-3">Entreprise</th>
-                    <th>Catégorie</th>
-                    <th>Ville</th>
-                    <th>Pays</th>
-                    <th>Score</th>
-                    <th>Qualité site</th>
-                    <th>Site</th>
-                    <th>Statut</th>
-                    <th>Dernière analyse</th>
-                    <th>Découverte</th>
-                    <th>Prochaine action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {result.prospects.map((prospect) => (
-                    <tr className="border-b" key={prospect.id}>
-                      <td className="py-4">
-                        <a
-                          className="font-semibold text-violet-700"
-                          href={`/prospects/${prospect.id}`}
-                        >
-                          {prospect.companyName}
-                        </a>
-                      </td>
-                      <td>{prospect.category}</td>
-                      <td>{prospect.city}</td>
-                      <td>{prospect.countryCode}</td>
-                      <td>{prospect.opportunityScore ?? '—'}</td>
-                      <td>{prospect.websiteQuality ?? '—'}</td>
-                      <td>{prospect.hasWebsite ? 'Oui' : 'Non'}</td>
-                      <td>{prospect.status}</td>
-                      <td>
-                        {prospect.lastAnalyzedAt
-                          ? new Date(
-                              prospect.lastAnalyzedAt,
-                            ).toLocaleDateString('fr-FR')
-                          : '—'}
-                      </td>
-                      <td>
-                        {new Date(prospect.discoveredAt).toLocaleDateString(
-                          'fr-FR',
-                        )}
-                      </td>
-                      <td>{prospect.nextAction ?? '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <ProspectBatchTable prospects={result.prospects} />
               <div className="mt-5 flex justify-between text-sm">
                 <span>{result.pagination.total} prospect(s)</span>
                 <div className="flex gap-4">

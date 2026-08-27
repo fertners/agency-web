@@ -1,14 +1,15 @@
 .awa-site {
-  --awa-primary: #18231c;
-  --awa-accent: #c58b46;
-  --awa-background: #fbf8f1;
-  --awa-text: #172019;
-  --awa-heading-font: Georgia, serif;
+  --awa-primary: #050505;
+  --awa-accent: #f4c20d;
+  --awa-background: #050505;
+  --awa-text: #f7f7f2;
+  --awa-heading-font: Arial, sans-serif;
   --awa-body-font: Inter, ui-sans-serif, system-ui, sans-serif;
   --awa-button-radius: 999px;
   margin: 0;
-  background: var(--awa-background);
-  color: var(--awa-text);
+  overflow: hidden;
+  background: #050505;
+  color: #f7f7f2;
   font-family: var(--awa-body-font);
   line-height: 1.6;
 }
@@ -18,195 +19,285 @@
   box-sizing: border-box;
 }
 .awa-container {
-  width: min(1120px, calc(100% - 2rem));
+  width: min(1180px, calc(100% - 3rem));
   margin-inline: auto;
 }
 .awa-navbar {
   position: absolute;
   z-index: 10;
   width: 100%;
-  border-bottom: 1px solid rgb(255 255 255 / 18%);
-  color: white;
+  color: #fff;
 }
 .awa-navbar-inner {
-  min-height: 78px;
+  min-height: 84px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
 }
 .awa-brand {
-  color: inherit;
-  font-family: var(--awa-heading-font);
-  font-size: 1.3rem;
-  font-weight: 700;
+  color: var(--awa-accent);
+  font: 800 1.1rem var(--awa-heading-font);
+  letter-spacing: -0.03em;
   text-decoration: none;
+}
+.awa-brand::before {
+  content: '✦';
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  margin-right: 0.55rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--awa-accent);
+  color: #050505;
 }
 .awa-nav-links {
   display: flex;
-  gap: 1.8rem;
+  gap: 2rem;
 }
 .awa-nav-links a {
-  color: inherit;
-  font-size: 0.9rem;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
   text-decoration: none;
+  text-transform: uppercase;
 }
 .awa-button {
   display: inline-flex;
+  align-items: center;
   justify-content: center;
-  padding: 0.85rem 1.3rem;
+  padding: 0.85rem 1.35rem;
+  border: 1px solid var(--awa-accent);
   border-radius: var(--awa-button-radius);
   background: var(--awa-accent);
-  color: #151515;
-  font-weight: 750;
+  color: #050505;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
   text-decoration: none;
+  text-transform: uppercase;
 }
 .awa-button-small {
-  padding: 0.6rem 1rem;
-  font-size: 0.85rem;
+  padding: 0.62rem 1.05rem;
 }
 .awa-hero {
   position: relative;
-  min-height: min(780px, 92vh);
+  min-height: min(820px, 100vh);
   display: grid;
-  align-items: end;
+  align-items: center;
   overflow: hidden;
-  background: var(--awa-primary);
-  color: white;
+  background: #050505;
+  color: #fff;
+}
+.awa-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: clamp(8px, 1.3vw, 20px);
+  z-index: 3;
+  background: var(--awa-accent);
 }
 .awa-hero-image,
 .awa-hero-texture,
 .awa-hero-overlay {
   position: absolute;
-  inset: 0;
-  width: 100%;
+  inset: 0 0 0 auto;
+  width: 58%;
   height: 100%;
 }
 .awa-hero-image {
   object-fit: cover;
+  object-position: center;
 }
 .awa-hero-texture {
   background:
     radial-gradient(
-      circle at 75% 20%,
-      color-mix(in srgb, var(--awa-accent) 55%, transparent),
-      transparent 32%
+      circle at 62% 42%,
+      var(--awa-accent) 0 7%,
+      transparent 7.5%
     ),
-    linear-gradient(135deg, var(--awa-primary), #080b09);
+    radial-gradient(circle at 65% 45%, #8a531d 0 24%, transparent 25%),
+    radial-gradient(circle at 70% 50%, #29170b 0 38%, transparent 39%);
 }
 .awa-hero-overlay {
-  background: linear-gradient(90deg, rgb(0 0 0 / 75%), rgb(0 0 0 / 12%));
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    #050505 0 39%,
+    rgb(5 5 5 / 82%) 50%,
+    transparent 75%
+  );
 }
 .awa-hero-content {
   position: relative;
-  z-index: 2;
-  padding-block: 11rem 6rem;
+  z-index: 4;
+  padding-block: 10rem 7rem;
 }
-.awa-hero-split .awa-hero {
-  color: var(--awa-text);
-  background: var(--awa-background);
-}
-.awa-hero-split .awa-navbar {
-  color: var(--awa-text);
-  border-bottom-color: color-mix(in srgb, var(--awa-text) 15%, transparent);
-}
-.awa-hero-split .awa-hero-overlay {
-  display: none;
-}
-.awa-hero-split .awa-hero-image {
-  inset: 8rem 4vw 4rem auto;
-  width: min(46vw, 650px);
-  height: calc(100% - 12rem);
-  border-radius: 2rem;
-}
-.awa-hero-split .awa-hero-content {
-  padding-right: 52%;
-}
-.awa-hero-split .awa-hero-copy {
-  color: color-mix(in srgb, var(--awa-text) 70%, transparent);
+.awa-hero-kicker {
+  display: inline-grid;
+  width: 3.4rem;
+  height: 3.4rem;
+  margin-bottom: 2rem;
+  place-items: center;
+  border: 1px solid rgb(244 194 13 / 65%);
+  border-radius: 50%;
+  color: var(--awa-accent);
+  font-weight: 900;
 }
 .awa-hero h1 {
-  max-width: 800px;
-  margin: 0.4rem 0 1rem;
-  font: 700 clamp(3rem, 8vw, 6.8rem)/0.95 var(--awa-heading-font);
-  letter-spacing: -0.055em;
+  max-width: 650px;
+  margin: 0.35rem 0 1rem;
+  font: 850 clamp(3.2rem, 7vw, 7.2rem)/0.92 var(--awa-heading-font);
+  letter-spacing: -0.065em;
 }
 .awa-hero-copy {
-  max-width: 610px;
-  margin-bottom: 2rem;
-  font-size: clamp(1.05rem, 2vw, 1.35rem);
-  color: rgb(255 255 255 / 78%);
+  max-width: 540px;
+  margin: 0 0 2.2rem;
+  color: rgb(255 255 255 / 62%);
+  font-size: clamp(1rem, 1.7vw, 1.25rem);
 }
-.awa-eyebrow {
-  margin: 0 0 0.5rem;
-  color: var(--awa-accent);
-  font-size: 0.74rem;
+.awa-hero-scroll {
+  position: absolute;
+  z-index: 4;
+  right: 2rem;
+  bottom: 2rem;
+  margin: 0;
+  color: #fff;
+  font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
-.awa-section .awa-eyebrow {
-  color: var(--awa-primary);
+.awa-hero-scroll span {
+  color: var(--awa-accent);
+  font-size: 1rem;
+}
+.awa-eyebrow {
+  margin: 0 0 0.7rem;
+  color: var(--awa-accent);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 .awa-section {
-  padding-block: clamp(4.5rem, 9vw, 8rem);
-}
-.awa-alt {
-  background: color-mix(in srgb, var(--awa-primary) 5%, var(--awa-background));
+  position: relative;
+  padding-block: clamp(5rem, 10vw, 9rem);
+  background: #050505;
 }
 .awa-section-title {
-  max-width: 760px;
-  margin: 0 0 2.5rem;
-  font: 700 clamp(2.3rem, 5vw, 4.7rem)/1 var(--awa-heading-font);
-  letter-spacing: -0.035em;
+  max-width: 800px;
+  margin: 0 0 3.5rem;
+  font: 850 clamp(2.5rem, 5.5vw, 5.4rem)/0.98 var(--awa-heading-font);
+  letter-spacing: -0.055em;
+}
+.awa-about-grid {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  align-items: center;
+  gap: clamp(2rem, 7vw, 7rem);
+}
+.awa-about-image,
+.awa-about-placeholder {
+  width: 100%;
+  min-height: 430px;
+  object-fit: cover;
+}
+.awa-about-placeholder {
+  background:
+    linear-gradient(
+      135deg,
+      transparent 47%,
+      var(--awa-accent) 48% 52%,
+      transparent 53%
+    ),
+    #161616;
+}
+.awa-about-copy {
+  padding-block: 2rem;
 }
 .awa-lead {
-  max-width: 780px;
   margin: 0;
-  font: 400 clamp(1.25rem, 2.5vw, 2rem)/1.5 var(--awa-heading-font);
+  font: 500 clamp(1.2rem, 2.3vw, 2rem)/1.45 var(--awa-heading-font);
 }
-.awa-card-grid,
-.awa-review-grid {
+.awa-about-note {
+  margin: 2rem 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid #2c2c2c;
+  color: var(--awa-accent);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.awa-alt {
+  background: var(--awa-accent);
+  color: #070707;
+}
+.awa-alt .awa-eyebrow {
+  color: #070707;
+  opacity: 0.6;
+}
+.awa-alt::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  background-image: radial-gradient(#111 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+.awa-alt .awa-container {
+  position: relative;
+}
+.awa-card-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-.awa-menu-card,
-.awa-review-grid figure {
-  margin: 0;
-  padding: 1.5rem;
-  border: 1px solid color-mix(in srgb, var(--awa-text) 13%, transparent);
-  border-radius: 1rem;
-  background: color-mix(in srgb, var(--awa-background) 92%, white);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.2rem;
 }
 .awa-menu-card {
+  min-height: 260px;
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1.2rem;
+  padding: 1.7rem;
+  border: 1px solid rgb(5 5 5 / 24%);
+  background: rgb(255 255 255 / 16%);
+}
+.awa-card-number {
+  font: 900 0.72rem var(--awa-body-font);
+  letter-spacing: 0.18em;
 }
 .awa-menu-card h3 {
   margin: 0;
-  font: 700 1.25rem var(--awa-heading-font);
+  font: 850 1.55rem var(--awa-heading-font);
 }
 .awa-menu-card p {
-  margin: 0.4rem 0 0;
+  margin: 0.6rem 0 0;
   opacity: 0.7;
 }
 .awa-menu-card strong {
-  white-space: nowrap;
-  color: var(--awa-primary);
+  font-size: 1.15rem;
 }
 .awa-service-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
   padding: 0;
+  background: #292929;
   list-style: none;
 }
 .awa-service-list li {
-  padding: 0.65rem 1rem;
-  border: 1px solid color-mix(in srgb, var(--awa-text) 16%, transparent);
-  border-radius: 999px;
+  padding: 2rem;
+  background: #0b0b0b;
+  color: #fff;
+  font-weight: 800;
+}
+.awa-service-list li::before {
+  content: '+';
+  margin-right: 0.8rem;
+  color: var(--awa-accent);
 }
 .awa-gallery {
   display: grid;
@@ -216,96 +307,169 @@
 .awa-gallery img {
   grid-column: span 4;
   width: 100%;
-  height: 330px;
-  border-radius: 0.8rem;
+  height: 390px;
   object-fit: cover;
+  filter: saturate(0.85) contrast(1.05);
+}
+.awa-gallery img:nth-child(2n) {
+  transform: translateY(2rem);
+}
+.awa-review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: #c99d00;
+}
+.awa-review-grid figure {
+  margin: 0;
+  padding: clamp(2rem, 5vw, 4.5rem);
+  background: var(--awa-accent);
 }
 .awa-review-grid blockquote {
-  margin: 0 0 1rem;
-  font: 400 1.25rem/1.5 var(--awa-heading-font);
+  margin: 0 0 1.5rem;
+  font: 750 clamp(1.3rem, 2.4vw, 2.1rem)/1.35 var(--awa-heading-font);
 }
 .awa-review-grid figcaption {
-  color: var(--awa-accent);
-  font-weight: 700;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 .awa-hours {
-  max-width: 680px;
+  max-width: 760px;
+  margin: 0;
 }
 .awa-hours div {
   display: flex;
   justify-content: space-between;
-  padding: 0.8rem 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--awa-text) 13%, transparent);
+  padding: 1rem 0;
+  border-bottom: 1px solid #292929;
 }
 .awa-hours dt {
-  font-weight: 700;
+  font-weight: 800;
+}
+.awa-hours dd {
+  color: var(--awa-accent);
 }
 .awa-contact {
-  background: var(--awa-primary);
-  color: white;
+  min-height: 560px;
+  display: grid;
+  align-items: center;
+  text-align: center;
+}
+.awa-contact .awa-section-title {
+  margin-inline: auto;
 }
 .awa-contact-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  justify-content: center;
+  gap: 1.5rem;
 }
 .awa-contact-links a {
-  color: white;
-  font-size: 1.2rem;
+  color: var(--awa-accent);
+  font-size: 1.05rem;
+  font-weight: 800;
 }
 .awa-cta {
-  padding-block: 5rem;
-  text-align: center;
+  padding-block: 6rem;
   background: var(--awa-accent);
-  color: #151515;
+  color: #050505;
+  text-align: center;
 }
 .awa-cta h2 {
-  margin: 0 0 1.5rem;
-  font: 700 clamp(2rem, 5vw, 4rem)/1 var(--awa-heading-font);
+  margin: 0 0 2rem;
+  font: 850 clamp(2.6rem, 6vw, 5.5rem)/0.95 var(--awa-heading-font);
+  letter-spacing: -0.06em;
 }
 .awa-cta .awa-button {
-  background: var(--awa-primary);
-  color: white;
+  border-color: #050505;
+  background: #050505;
+  color: #fff;
 }
 .awa-footer {
-  padding-block: 2rem;
-  background: #0b0f0c;
-  color: white;
+  padding-block: 4rem;
+  border-top: 1px solid #242424;
+  background: #0b0b0b;
+  color: #fff;
 }
-.awa-footer .awa-container {
+.awa-footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 0.7fr 0.7fr;
+  gap: 3rem;
+}
+.awa-footer strong {
+  color: var(--awa-accent);
+  font: 850 1.2rem var(--awa-heading-font);
+}
+.awa-footer p {
+  max-width: 420px;
+  margin: 1rem 0 0;
+  color: rgb(255 255 255 / 52%);
+  font-size: 0.85rem;
+}
+.awa-footer-grid > div {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.65rem;
 }
-@media (max-width: 720px) {
-  .awa-hero-split .awa-hero-image {
-    inset: auto 1rem 2rem;
-    width: calc(100% - 2rem);
-    height: 38%;
+.awa-footer-label {
+  color: var(--awa-accent);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+@media (max-width: 800px) {
+  .awa-container {
+    width: min(100% - 2rem, 1180px);
   }
-  .awa-hero-split .awa-hero-content {
-    padding-right: 0;
-    padding-bottom: 48vh;
-  }
-  .awa-nav-links {
-    display: none;
-  }
+  .awa-nav-links,
   .awa-navbar .awa-button {
     display: none;
   }
+  .awa-navbar-inner {
+    min-height: 70px;
+  }
+  .awa-hero {
+    min-height: 780px;
+    align-items: end;
+  }
+  .awa-hero-image,
+  .awa-hero-texture {
+    inset: 0 0 auto;
+    width: 100%;
+    height: 52%;
+  }
+  .awa-hero-overlay {
+    background: linear-gradient(0deg, #050505 42%, transparent 80%);
+  }
+  .awa-hero-content {
+    padding-block: 25rem 4rem;
+  }
+  .awa-hero h1 {
+    font-size: clamp(3.2rem, 16vw, 5.2rem);
+  }
+  .awa-hero-scroll {
+    display: none;
+  }
+  .awa-about-grid,
+  .awa-footer-grid {
+    grid-template-columns: 1fr;
+  }
+  .awa-about-image,
+  .awa-about-placeholder {
+    min-height: 300px;
+  }
   .awa-card-grid,
+  .awa-service-list,
   .awa-review-grid {
     grid-template-columns: 1fr;
   }
   .awa-gallery img {
     grid-column: span 12;
-    height: 260px;
-  }
-  .awa-hero-content {
-    padding-bottom: 4rem;
-  }
-  .awa-footer .awa-container {
-    flex-direction: column;
+    height: 300px;
+    transform: none !important;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -1,6 +1,6 @@
 # AI Web Agency
 
-Monorepo for an AI-assisted web agency platform. The product is developed incrementally, beginning with the local application and job-processing foundation.
+Monorepo for an AI-assisted web agency platform. Phases 1 through 7 cover the local platform, restaurant websites, automated review and QA, prospect research, commercial workflows, client conversion, and traceable deployment.
 
 ## Requirements
 
@@ -14,11 +14,14 @@ pnpm install
 Copy-Item .env.example .env
 pnpm infra:up
 pnpm db:migrate
-pnpm dev
+pnpm build
+pnpm start
 ```
+
+`pnpm dev` enables watch mode. On Windows hosts affected by Node's `uv_os_get_passwd/ENOMEM` issue, use the compiled `pnpm start` workflow above.
 
 Open the dashboard at `http://localhost:3000`. The API and its health endpoint are available at `http://localhost:3001` and `http://localhost:3001/health`.
 
 PostgreSQL and Redis run locally in Docker. Run the complete verification suite with `pnpm check`; infrastructure-backed tests are documented separately.
 
-Phases 1 through 4 are available locally. See the [Phase 1 acceptance record](docs/phase-1.md), [Phase 2 acceptance record](docs/phase-2.md), [Phase 3 acceptance record](docs/phase-3.md), [Phase 4 acceptance record](docs/phase-4.md), [development documentation](docs/development.md), and [architecture documentation](docs/architecture.md).
+Phases 1 through 7 are available locally. Acceptance records live in `docs/phase-1.md` through `docs/phase-7.md`. See also the [development documentation](docs/development.md), [operations runbook](docs/operations-runbook.md), and [architecture documentation](docs/architecture.md).

@@ -17,6 +17,7 @@ describe('Phase 7 delivery contracts', () => {
         websiteId: '27d59fde-e85a-47ea-bdf0-53281e19bc0f',
         versionId: 'b44e3fb6-d25d-483e-aa66-f95a7a8ed399',
         environment: 'PREVIEW',
+        provider: 'local-preview',
       }).environment,
     ).toBe('PREVIEW');
   });

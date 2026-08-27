@@ -36,7 +36,7 @@ export function createDiagnosticProcessor(
       return result;
     } catch (error) {
       if (attempt >= (job.opts.attempts ?? DIAGNOSTIC_JOB_ATTEMPTS)) {
-        await repository.markFailed(job.id, attempt);
+        await repository.markFailed(job.id, attempt, 'Diagnostic job failed');
       } else {
         await repository.markPendingRetry(job.id, attempt);
       }

@@ -2,10 +2,8 @@ import { restaurantWebsiteConfigSchema } from '@ai-web-agency/shared';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
-import {
-  renderStaticRestaurantDocument,
-  RestaurantTemplate,
-} from '../src/index.js';
+import { RestaurantTemplate } from '../src/index.js';
+import { renderStaticRestaurantDocument } from '../src/render-static-restaurant.js';
 
 const config = restaurantWebsiteConfigSchema.parse({
   schemaVersion: 1,
@@ -119,5 +117,14 @@ describe('RestaurantTemplate', () => {
     expect(markup).toContain('awa-hero-split');
     expect(markup).not.toContain('banner-image.webp');
     expect(markup).not.toContain('signature dishes');
+  });
+
+  it('renders the photographic dark restaurant composition with replaceable content', () => {
+    const markup = renderToStaticMarkup(<RestaurantTemplate config={config} />);
+
+    expect(markup).toContain('awa-about-grid');
+    expect(markup).toContain('awa-card-number');
+    expect(markup).toContain('awa-footer-grid');
+    expect(markup).toContain('Cuisine authentique');
   });
 });

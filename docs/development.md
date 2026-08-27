@@ -14,10 +14,13 @@ pnpm install
 Copy-Item .env.example .env # PowerShell
 pnpm infra:up
 pnpm db:migrate
-pnpm dev
+pnpm build
+pnpm start
 ```
 
 On macOS or Linux, replace the copy command with `cp .env.example .env`.
+
+Use `pnpm dev` when watch mode is required. `pnpm start` runs the applications and workers from validated production builds and is the preferred fallback on Windows if `tsx` reports `uv_os_get_passwd/ENOMEM`.
 
 `pnpm infra:up` waits until PostgreSQL and Redis pass their healthchecks. Both ports are bound to `127.0.0.1` and are not exposed on the local network.
 
@@ -58,7 +61,13 @@ pnpm workflow:test
 pnpm generation:test
 ```
 
-`pnpm check` covers deterministic checks that do not require live infrastructure. Run the three integration commands after `pnpm infra:up` when validating a release or an infrastructure-related change.
+`pnpm check` covers deterministic checks that do not require live infrastructure. Run all four integration commands after `pnpm infra:up` when validating a release or an infrastructure-related change. Stop other workers first so they cannot consume jobs created by the integration tests.
+
+## Optional providers
+
+With no `AI_PROVIDER`, the deterministic local provider is used. For Ollama, install it, run `ollama pull gemma3:4b`, then set `AI_PROVIDER=ollama`. OpenAI requires `AI_PROVIDER=openai` and `OPENAI_API_KEY`.
+
+Local preview deployment is the default. Cloudflare Pages requires `DEPLOYMENT_PROVIDER=cloudflare-pages`, an account identifier, and a token restricted to Pages Write. Keep every secret outside Git and see the operations runbook for validation and rollback procedures.
 
 ## First diagnostic
 

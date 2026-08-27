@@ -9,7 +9,8 @@
   },
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --concurrency=11",
+    "start": "turbo run start --concurrency=11",
     "lint": "eslint eslint.config.mjs && turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",

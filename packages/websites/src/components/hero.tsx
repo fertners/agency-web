@@ -13,6 +13,9 @@ export function Hero({
       )}
       <div className="awa-hero-overlay" />
       <div className="awa-container awa-hero-content">
+        <span className="awa-hero-kicker" aria-hidden="true">
+          {config.business.name.slice(0, 2).toLocaleUpperCase('fr-FR')}
+        </span>
         {config.business.cuisines.length === 0 ? null : (
           <p className="awa-eyebrow">{config.business.cuisines.join(' · ')}</p>
         )}
@@ -25,6 +28,9 @@ export function Hero({
           {config.content.primaryCallToAction}
         </a>
       </div>
+      <p className="awa-hero-scroll" aria-hidden="true">
+        Découvrir <span>↓</span>
+      </p>
     </section>
   );
 }

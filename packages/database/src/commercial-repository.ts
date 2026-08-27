@@ -9,6 +9,7 @@ import type { Database } from './client.js';
 import { hashContactIdentity } from './contact-identity.js';
 import {
   clients,
+  appSettings,
   communicationDrafts,
   companies,
   contactSuppressions,
@@ -32,6 +33,14 @@ export class CommercialRepository {
       .innerJoin(companies, eq(prospects.companyId, companies.id))
       .where(eq(prospects.id, id));
     return row;
+  }
+
+  async getProposalMessageTemplatesSetting(): Promise<unknown> {
+    const [row] = await this.database
+      .select({ value: appSettings.value })
+      .from(appSettings)
+      .where(eq(appSettings.key, 'commercial.proposal_message_templates'));
+    return row?.value;
   }
 
   async getProspectDetail(id: string) {

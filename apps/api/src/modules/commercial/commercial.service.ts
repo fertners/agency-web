@@ -93,6 +93,47 @@ function toProposal(row: {
   });
 }
 
+type ProposalMessageTemplate = Readonly<{
+  subject: string;
+  body: string;
+  updatedAt: string;
+}>;
+
+function latestProposalMessageTemplate(
+  value: unknown,
+): ProposalMessageTemplate | undefined {
+  if (typeof value !== 'string') return undefined;
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (!Array.isArray(parsed)) return undefined;
+    const items: unknown[] = parsed;
+    return items
+      .filter((item): item is ProposalMessageTemplate => {
+        if (typeof item !== 'object' || item === null) return false;
+        const record = item as Record<string, unknown>;
+        return (
+          typeof record.subject === 'string' &&
+          typeof record.body === 'string' &&
+          typeof record.updatedAt === 'string'
+        );
+      })
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+  } catch {
+    return undefined;
+  }
+}
+
+function applyMessageVariables(
+  template: string,
+  companyName: string,
+  previewUrl: string,
+): string {
+  return template
+    .replaceAll('{{companyName}}', companyName)
+    .replaceAll('{{previewUrl}}', previewUrl)
+    .replaceAll('{{proposalLink}}', '{PROPOSAL_LINK}');
+}
+
 @Injectable()
 export class CommercialService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(CommercialService.name);
@@ -290,12 +331,27 @@ export class CommercialService implements OnModuleInit, OnModuleDestroy {
       timelineDays: input.timelineDays,
       scope: input.scope,
     });
+    const messageTemplate = latestProposalMessageTemplate(
+      await this.database.commercial.getProposalMessageTemplatesSetting(),
+    );
     const row = await this.database.commercial.createProposal(
       id,
       input,
-      content.title,
+      messageTemplate === undefined
+        ? content.title
+        : applyMessageVariables(
+            messageTemplate.subject,
+            prospect.company.name,
+            previewUrl,
+          ),
       content.summary,
-      content.message,
+      messageTemplate === undefined
+        ? content.message
+        : applyMessageVariables(
+            messageTemplate.body,
+            prospect.company.name,
+            previewUrl,
+          ),
       content.issues,
       previewUrl,
       previewImageUrl,

@@ -10,21 +10,13 @@ import {
   type WebsiteGenerationContext,
 } from '@ai-web-agency/shared';
 
-const MODERN_SIGNALS = ['moderne', 'contemporain', 'fusion', 'street food'];
-const CHEFS_KITCHEN_SIGNALS = [
-  'pizza',
-  'burger',
-  'street food',
-  'décontracté',
-  'casual',
-];
-const WARM_SIGNALS = [
-  'familial',
-  'traditionnel',
-  'bistrot',
-  'italien',
+const MEDITERRANEAN_SIGNALS = [
+  'grec',
+  'grecque',
   'méditerranéen',
-  'authentique',
+  'méditerranéenne',
+  'souvlaki',
+  'mezze',
 ];
 
 function deriveBrandProfile(
@@ -93,46 +85,15 @@ export function selectRestaurantTheme(
     .filter((value): value is string => value !== undefined)
     .join(' ')
     .toLocaleLowerCase('fr-FR');
-  const modern = MODERN_SIGNALS.filter((signal) => searchable.includes(signal));
-  const chefsKitchen = CHEFS_KITCHEN_SIGNALS.filter((signal) =>
+  const mediterranean = MEDITERRANEAN_SIGNALS.filter((signal) =>
     searchable.includes(signal),
   );
-  const warm = WARM_SIGNALS.filter((signal) => searchable.includes(signal));
-
-  if (chefsKitchen.length > 0) {
-    return themeSelectionSchema.parse({
-      themeKey: 'restaurant-chefs-kitchen-v1',
-      reason:
-        "Les signaux culinaires correspondent au thème MIT normalisé Chef's Kitchen.",
-      usedCategoryFallback: false,
-      matchedSignals: chefsKitchen,
-    });
-  }
-
-  if (modern.length > warm.length && modern.length > 0) {
-    return themeSelectionSchema.parse({
-      themeKey: 'restaurant-modern-v1',
-      reason:
-        'Les signaux de marque correspondent au thème restaurant moderne.',
-      usedCategoryFallback: false,
-      matchedSignals: modern,
-    });
-  }
-  if (warm.length > 0) {
-    return themeSelectionSchema.parse({
-      themeKey: 'restaurant-warm-v1',
-      reason:
-        'Les signaux de marque correspondent au thème restaurant chaleureux.',
-      usedCategoryFallback: false,
-      matchedSignals: warm,
-    });
-  }
   return themeSelectionSchema.parse({
-    themeKey: 'restaurant-elegant-v1',
+    themeKey: 'restaurant-mediterranean-v1',
     reason:
-      'Aucun signal de marque suffisamment précis : application du thème Restaurant par défaut.',
-    usedCategoryFallback: true,
-    matchedSignals: [],
+      'Application du thème restaurant standard sombre et safran, personnalisable avec les éléments vérifiés de la marque.',
+    usedCategoryFallback: mediterranean.length === 0,
+    matchedSignals: mediterranean,
   });
 }
 

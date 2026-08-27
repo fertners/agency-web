@@ -64,6 +64,16 @@ export class AgentJobRepository {
       .where(eq(agentJobs.id, id));
   }
 
+  async updateOutput(
+    id: string,
+    output: Record<string, unknown>,
+  ): Promise<void> {
+    await this.database
+      .update(agentJobs)
+      .set({ output, updatedAt: new Date() })
+      .where(eq(agentJobs.id, id));
+  }
+
   async markPendingRetry(id: string, attempt: number): Promise<void> {
     await this.database
       .update(agentJobs)

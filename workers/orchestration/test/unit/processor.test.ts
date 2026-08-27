@@ -11,6 +11,7 @@ describe('prospect workflow processor', () => {
   it('records an actionable failure when an internal step fails', async () => {
     const repository = {
       markRunning: vi.fn(),
+      updateOutput: vi.fn(),
       markCompleted: vi.fn(),
       markFailed: vi.fn(),
     };

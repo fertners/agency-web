@@ -30,18 +30,35 @@ function renderSection(
       return <Navbar config={config} />;
     case 'HERO':
       return <Hero config={config} />;
-    case 'ABOUT':
+    case 'ABOUT': {
+      const aboutImage = business.gallery[0] ?? business.heroImage;
       return (
         <Section
           eyebrow="Notre histoire"
           title={business.tagline ?? 'Une table sincère'}
           className="awa-about"
         >
-          <p className="awa-lead" id="about">
-            {config.content.about}
-          </p>
+          <div className="awa-about-grid" id="about">
+            {aboutImage === undefined ? (
+              <div className="awa-about-placeholder" aria-hidden="true" />
+            ) : (
+              <img
+                className="awa-about-image"
+                src={aboutImage.url}
+                alt={aboutImage.alt}
+                loading="lazy"
+              />
+            )}
+            <div className="awa-about-copy">
+              <p className="awa-lead">{config.content.about}</p>
+              <p className="awa-about-note">
+                Cuisine authentique · Produits choisis · Service attentionné
+              </p>
+            </div>
+          </div>
         </Section>
       );
+    }
     case 'SPECIALTIES':
       return business.menuHighlights.length === 0 ? null : (
         <Section
@@ -50,8 +67,11 @@ function renderSection(
           className="awa-alt"
         >
           <div className="awa-card-grid" id="specialties">
-            {business.menuHighlights.map((item) => (
+            {business.menuHighlights.map((item, index) => (
               <article className="awa-menu-card" key={item.name}>
+                <span className="awa-card-number" aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
                 <div>
                   <h3>{item.name}</h3>
                   <p>{item.description}</p>
@@ -193,11 +213,25 @@ function renderSection(
     case 'FOOTER':
       return (
         <footer className="awa-footer">
-          <div className="awa-container">
-            <strong>{business.name}</strong>
-            <span>
-              {business.address.city} · {business.address.countryCode}
-            </span>
+          <div className="awa-container awa-footer-grid">
+            <div>
+              <strong>{business.name}</strong>
+              <p>{business.description}</p>
+            </div>
+            <div>
+              <span className="awa-footer-label">Nous trouver</span>
+              <span>
+                {business.address.city} · {business.address.countryCode}
+              </span>
+            </div>
+            <div>
+              <span className="awa-footer-label">Contact</span>
+              <span>
+                {business.contact.phone ??
+                  business.contact.email ??
+                  'Votre contact'}
+              </span>
+            </div>
           </div>
         </footer>
       );
@@ -224,7 +258,7 @@ export function RestaurantTemplate({
   };
   return (
     <main
-      className={`awa-site awa-hero-${config.design.heroLayout.toLocaleLowerCase()}`}
+      className={`awa-site awa-hero-${config.design.heroLayout.toLocaleLowerCase()}${config.generation?.theme.themeKey === 'restaurant-mediterranean-v1' ? ' awa-mediterranean' : ''}`}
       style={style}
     >
       {config.sections.map((section) => (

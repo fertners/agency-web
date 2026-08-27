@@ -18,6 +18,7 @@ export const RESTAURANT_THEME_KEYS = [
   'restaurant-warm-v1',
   'restaurant-modern-v1',
   'restaurant-chefs-kitchen-v1',
+  'restaurant-mediterranean-v1',
 ] as const;
 
 const nonEmptyTextSchema = z.string().trim().min(1);

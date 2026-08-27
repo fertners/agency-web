@@ -17,8 +17,38 @@ import type { Job } from 'bullmq';
 
 type WorkflowRepository = Pick<
   AgentJobRepository,
-  'markRunning' | 'markCompleted' | 'markFailed'
+  'markRunning' | 'updateOutput' | 'markCompleted' | 'markFailed'
 >;
+
+const WORKFLOW_STEPS = [
+  'qualification',
+  'generation',
+  'designReview',
+  'quality',
+  'proposal',
+  'publication',
+] as const;
+
+type WorkflowStep = (typeof WORKFLOW_STEPS)[number];
+
+function workflowProgress(currentStep: WorkflowStep) {
+  const currentIndex = WORKFLOW_STEPS.indexOf(currentStep);
+  return {
+    workflowProgress: {
+      currentStep,
+      steps: Object.fromEntries(
+        WORKFLOW_STEPS.map((step, index) => [
+          step,
+          index < currentIndex
+            ? 'COMPLETED'
+            : index === currentIndex
+              ? 'RUNNING'
+              : 'PENDING',
+        ]),
+      ),
+    },
+  };
+}
 
 type WorkflowOptions = Readonly<{
   apiBaseUrl: string;
@@ -95,7 +125,11 @@ export function createProspectWorkflowProcessor(
     if (job.id === undefined) throw new Error('Workflow job requires an id');
     const payload = prospectWorkflowJobPayloadSchema.parse(job.data);
     await repository.markRunning(job.id, 1);
+    let currentStep: WorkflowStep = 'qualification';
     try {
+      await repository.updateOutput(job.id, workflowProgress(currentStep));
+      currentStep = 'generation';
+      await repository.updateOutput(job.id, workflowProgress(currentStep));
       const generation = createRestaurantWebsiteResponseSchema.parse(
         await requestJson(
           fetcher,
@@ -114,6 +148,8 @@ export function createProspectWorkflowProcessor(
           apiToken,
         ),
       );
+      currentStep = 'designReview';
+      await repository.updateOutput(job.id, workflowProgress(currentStep));
       const design = createDesignReviewResponseSchema.parse(
         await requestJson(
           fetcher,
@@ -134,6 +170,8 @@ export function createProspectWorkflowProcessor(
       );
       const versionId =
         designResult.correctedVersionId ?? designResult.versionId;
+      currentStep = 'quality';
+      await repository.updateOutput(job.id, workflowProgress(currentStep));
       const quality = createQualityReviewResponseSchema.parse(
         await requestJson(
           fetcher,
@@ -152,7 +190,9 @@ export function createProspectWorkflowProcessor(
           apiToken,
         ),
       );
-      const proposal = proposalSchema.parse(
+      currentStep = 'proposal';
+      await repository.updateOutput(job.id, workflowProgress(currentStep));
+      const draftProposal = proposalSchema.parse(
         await requestJson(
           fetcher,
           `${apiBaseUrl}/prospects/${payload.prospectId}/proposals`,
@@ -169,6 +209,20 @@ export function createProspectWorkflowProcessor(
           },
         ),
       );
+      currentStep = 'publication';
+      await repository.updateOutput(job.id, workflowProgress(currentStep));
+      const proposal = proposalSchema.parse(
+        await requestJson(
+          fetcher,
+          `${apiBaseUrl}/proposals/${draftProposal.id}/decision`,
+          apiToken,
+          {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ decision: 'approve' }),
+          },
+        ),
+      );
       const result = prospectWorkflowJobResultSchema.parse({
         prospectId: payload.prospectId,
         websiteId: generation.websiteId,
@@ -176,9 +230,33 @@ export function createProspectWorkflowProcessor(
         proposalId: proposal.id,
         proposalStatus: proposal.status,
       });
-      await repository.markCompleted(job.id, 1, result);
+      await repository.markCompleted(job.id, 1, {
+        ...result,
+        workflowProgress: {
+          currentStep: null,
+          steps: Object.fromEntries(
+            WORKFLOW_STEPS.map((step) => [step, 'COMPLETED']),
+          ),
+        },
+      });
       return result;
     } catch (error) {
+      const failedIndex = WORKFLOW_STEPS.indexOf(currentStep);
+      await repository.updateOutput(job.id, {
+        workflowProgress: {
+          currentStep,
+          steps: Object.fromEntries(
+            WORKFLOW_STEPS.map((step, index) => [
+              step,
+              index < failedIndex
+                ? 'COMPLETED'
+                : step === currentStep
+                  ? 'FAILED'
+                  : 'PENDING',
+            ]),
+          ),
+        },
+      });
       await repository.markFailed(
         job.id,
         1,

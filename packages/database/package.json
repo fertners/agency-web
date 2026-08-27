@@ -12,7 +12,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "db:generate": "pnpm --filter @ai-web-agency/shared build && drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "pnpm run build && node dist/migrate.js",
     "db:check": "drizzle-kit check",
     "lint": "eslint src test drizzle.config.ts",
     "test": "vitest run test/unit",

@@ -139,8 +139,12 @@ export class OllamaAIProvider implements AIProvider {
     return {
       output: schema.parse(decoded),
       usage: {
-        inputTokens: payload.prompt_eval_count,
-        outputTokens: payload.eval_count,
+        ...(payload.prompt_eval_count === undefined
+          ? {}
+          : { inputTokens: payload.prompt_eval_count }),
+        ...(payload.eval_count === undefined
+          ? {}
+          : { outputTokens: payload.eval_count }),
         costMicros: 0,
       },
     };

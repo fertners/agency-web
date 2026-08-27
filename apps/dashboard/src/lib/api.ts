@@ -1,5 +1,6 @@
 import {
   agentJobListResponseSchema,
+  agentJobResponseSchema,
   createRestaurantWebsiteResponseSchema,
   createDesignReviewResponseSchema,
   designReviewListResponseSchema,
@@ -10,6 +11,7 @@ import {
   websiteVersionListResponseSchema,
   websiteVersionResponseSchema,
   type AgentJobListResponse,
+  type AgentJobResponse,
   type CreateRestaurantWebsiteRequest,
   type CreateDesignReviewResponse,
   type DesignReviewListResponse,
@@ -407,6 +409,12 @@ export async function getHealth(): Promise<HealthResponse> {
 
 export async function getJobs(): Promise<AgentJobListResponse> {
   return agentJobListResponseSchema.parse(await getJson('/jobs'));
+}
+
+export async function getJob(id: string): Promise<AgentJobResponse> {
+  return agentJobResponseSchema.parse(
+    await getJson(`/jobs/${encodeURIComponent(id)}`),
+  );
 }
 
 export async function createDiagnosticJob(): Promise<void> {

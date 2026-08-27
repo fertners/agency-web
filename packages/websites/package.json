@@ -8,6 +8,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./static-renderer": {
+      "types": "./dist/render-static-restaurant.d.ts",
+      "import": "./dist/render-static-restaurant.js"
+    },
     "./styles.css": "./src/styles.css"
   },
   "scripts": {
